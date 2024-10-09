@@ -1,5 +1,18 @@
 #!/bin/bash
+apps=(
+    chromium
+    visual-studio-code-bin
+    git
+    go
+    htop
+    nano
+    npm
+    paru
+    r
+    spotify
+)
 
+paru -S --needed "${apps[@]}"
 source ./symlink.sh
 
 symlink ./chromium/chromium-flags.conf --to-config
