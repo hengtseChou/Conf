@@ -1,14 +1,14 @@
 #!/bin/bash
 source ./symlink.sh
 
-symlink ./chromium/chromium-flags.conf --to-config
-symlink ./code/code-flags.conf --to-config
-symlink ./git/.gitconfig --to-home
-symlink ./go/env --custom-dir ~/.config/go
-symlink ./htop --to-config
-symlink ./nano/.nanorc --to-home
-symlink ./npm/.npmrc --to-home
-symlink ./paru --to-config
-symlink ./R/.Rprofile --to-home
-symlink ./R/.Renviron --to-home
-symlink ./spotify/spotify-flags.conf --to-config
+symlink $PWD/chromium/chromium-flags.conf --to-config
+symlink $PWD/code/code-flags.conf --to-config
+symlink $PWD/git/.gitconfig --to-home
+symlink $PWD/go/env --custom-dir ~/.config/go
+symlink $PWD/htop --to-config
+symlink $PWD/nano/.nanorc --to-home
+symlink $PWD/npm/.npmrc --to-home
+symlink $PWD/paru --to-config
+symlink $PWD/R/.Rprofile --to-home
+symlink $PWD/R/.Renviron --to-home
+symlink $PWD/spotify/spotify-flags.conf --to-config
