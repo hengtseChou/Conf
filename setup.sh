@@ -3,6 +3,7 @@ source ./symlink.sh
 
 symlink $PWD/chromium/chromium-flags.conf --to-config
 symlink $PWD/code/code-flags.conf --to-config
+symlink $PWD/fcitx5 --to-config
 symlink $PWD/git/.gitconfig --to-home
 symlink $PWD/go/env --custom-dir ~/.config/go
 symlink $PWD/htop --to-config
