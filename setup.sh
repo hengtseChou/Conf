@@ -7,8 +7,10 @@ symlink $PWD/fcitx5 --to-config
 symlink $PWD/git/.gitconfig --to-home
 symlink $PWD/go/env --custom-dir ~/.config/go
 symlink $PWD/htop --to-config
+sudo cp $PWD/makepkg/makepkg.conf /etc/makepkg.conf
 symlink $PWD/nano/.nanorc --to-home
 symlink $PWD/npm/.npmrc --to-home
+sudo cp $PWD/pacman/pacman.conf /etc/pacman.conf
 symlink $PWD/paru --to-config
 symlink $PWD/R/.Rprofile --to-home
 symlink $PWD/R/.Renviron --to-home
