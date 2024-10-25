@@ -2,7 +2,8 @@
 	name = hengtseChou
 	email = hankthedev@gmail.com
 [alias]
-	unstage = reset HEAD
+	unstage = reset HEAD --
+	uncommit = reset HEAD~
 [credential "https://github.com"]
 	helper = 
 	helper = !/usr/bin/gh auth git-credential
