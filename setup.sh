@@ -40,6 +40,11 @@ if command -v r 2>&1 >/dev/null; then
     symlink $PWD/R/.Rprofile --to-home
     symlink $PWD/R/.Renviron --to-home
 fi
+if command -v rstudio 2>&1 >/dev/null; then
+    symlink $PWD/rstudio/config.json --custom-dir ~/.config/rstudio
+    symlink $PWD/rstudio/keybindings --custom-dir ~/.config/rstudio
+    symlink $PWD/rstudio/rstudio-prefs.json --custom-dir ~/.config/rstudio
+fi
 if command -v spotify 2>&1 >/dev/null; then
     symlink $PWD/spotify/spotify-flags.conf --to-config
 fi
