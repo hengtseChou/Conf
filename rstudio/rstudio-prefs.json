@@ -1,0 +1,42 @@
+{
+    "initial_working_directory": "~/Stat",
+    "help_font_size_points": 12,
+    "font_size_points": 12,
+    "editor_theme": "Tomorrow Night 80s",
+    "pdf_previewer": "none",
+    "posix_terminal_shell": "zsh",
+    "panes": {
+        "quadrants": [
+            "Source",
+            "TabSet2",
+            "TabSet1",
+            "Console"
+        ],
+        "tabSet1": [
+            "Environment",
+            "History",
+            "Connections",
+            "Build",
+            "VCS",
+            "Tutorial",
+            "Presentation"
+        ],
+        "tabSet2": [
+            "Files",
+            "Plots",
+            "Packages",
+            "Help",
+            "Viewer",
+            "Presentations"
+        ],
+        "hiddenTabSet": [],
+        "console_left_on_top": false,
+        "console_right_on_top": false,
+        "additional_source_columns": 0
+    },
+    "show_margin": false,
+    "margin_column": 100,
+    "indent_guides": "gray",
+    "jobs_tab_visibility": "shown",
+    "default_encoding": "UTF-8"
+}
