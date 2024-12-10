@@ -89,7 +89,7 @@ pkgs=(
   paru
   r
   rstudio-desktop-bin
-  spicetify
+  spicetify-cli
   spotify
   visual-studio-code-bin
   zsh
@@ -113,7 +113,12 @@ for pkg in ${selected_pkgs[@]}; do
   chromium)
     symlink $config_folder/chromium/chromium-flags.conf --to-config
     ;;
-
+  docker)
+    sudo groupadd docker
+    sudo usermod -aG docker $USER
+    sudo systemctl enable docker.service
+    sudo systemctl enable containerd.service
+    ;;
   fcitx5)
     symlink $config_folder/fcitx5 --to-config
     ;;
@@ -125,6 +130,18 @@ for pkg in ${selected_pkgs[@]}; do
     ;;
   go)
     symlink $config_folder/go/env --custom-dir ~/.config/go
+    ;;
+  gnome-shell)
+    dconf load / <$config_folder/gnome-shell/keybindings.ini
+    dconf load / <$config_folder/gnome-shell/wm-preferences.ini
+    ;;
+  gnome-terminal)
+    dconf load / <$config_folder/gnome-shell/terminal-theme.ini
+    ;;
+  greetd-tuigreet)
+    sudo systemctl enable greetd.service
+    sudo cp $config_folder/greetd/config.toml /etc/greetd/config.toml
+    sudo cp $config_folder/greetd/override.conf /etc/systemd/system/greetd.service.d/override.conf
     ;;
   htop)
     symlink $config_folder/htop --to-config
@@ -153,7 +170,7 @@ for pkg in ${selected_pkgs[@]}; do
     symlink $config_folder/rstudio/keybindings --custom-dir ~/.config/rstudio
     symlink $config_folder/rstudio/rstudio-prefs.json --custom-dir ~/.config/rstudio
     ;;
-  spicetify)
+  spicetify-cli)
     symlink $config_folder/spicetify/Extensions --custom-dir ~/.config/spicetify
     symlink $config_folder/spicetify/Themes --custom-dir ~/.config/spicetify
     symlink $config_folder/spicetify/config-xpui.ini --custom-dir ~/.config/spicetify
