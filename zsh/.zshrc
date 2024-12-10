@@ -1,8 +1,8 @@
-#             _
-#     _______| |__  _ __ ___
-#    |_  / __| '_ \| '__/ __|
-#   _ / /\__ \ | | | | | (__
-#  (_)___|___/_| |_|_|  \___|
+#                 __
+#     ____  _____/ /_  __________
+#    /_  / / ___/ __ \/ ___/ ___/
+#   _ / /_(__  ) / / / /  / /__
+#  (_)___/____/_/ /_/_/   \___/
 
 # ---------------------------------------------------------------------------- #
 #                                     PATH                                     #
@@ -58,20 +58,17 @@ setopt hist_find_no_dups
 
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 zstyle ':completion:*' menu no
+export FZF_DEFAULT_OPTS="
+  --color=fg:#d8dadd,bg:-1,hl:#B7D4ED
+  --color=fg+:#d8dadd,bg+:-1,hl+:#BCC2C6
+  --color=info:#B2BCC4,prompt:#758A9B,pointer:#B7D4ED
+  --color=marker:#BCC2C6,spinner:#B7D4ED,header:#949EA3
+  --layout=reverse"
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza --icons --group-directories-first $realpath'
-export FZF_CTRL_R_OPTS="--layout=reverse"
-
+zstyle ':fzf-tab:*' use-fzf-default-opts yes
 bindkey "^[[H" beginning-of-line
 bindkey "^[[F" end-of-line
 bindkey "^[[3~" delete-char
-
-# ---------------------------------------------------------------------------- #
-#                                  DIRECTORIES                                 #
-# ---------------------------------------------------------------------------- #
-
-hypr="$HOME/Hypr"
-niri="$HOME/Niri"
-conf="$HOME/Conf"
 
 # ---------------------------------------------------------------------------- #
 #                                      GIT                                     #
@@ -95,8 +92,6 @@ alias g="gnome-text-editor"
 alias ls="eza --icons --group-directories-first"
 alias ll="eza -l --icons --group-directories-first"
 alias lt="eza --tree --level=1 --icons --group-directories-first"
-alias conf="code $conf"
-alias hypr="code $hypr"
 alias wifi="nmtui connect"
 alias clock="peaclock"
 alias zshrc="nano $HOME/.zshrc"
@@ -133,22 +128,29 @@ log-out() {
 change-wallpaper() {
 
   wallpaper_dir="$HOME/Pictures/Wallpapers"
+  export GUM_CHOOSE_HEADER_FOREGROUND="#d8dadd"
+  export GUM_CHOOSE_SELECTED_FOREGROUND="#758A9B"
+  export GUM_CHOOSE_CURSOR_FOREGROUND="#758A9B"
   if [ ! -d $wallpaper_dir ]; then
-    echo "Error: ~/Pictures/Wallpapers does not exist. Place images into this directory."
-    exit 1
+    echo "[Error] ~/Pictures/Wallpapers does not exist. Place images into this directory."
+    return 1
   fi
-  deps=(magick gum)
-  for dep in ${deps[@]}; do
-    if ! command -v $dep 2>&1 >/dev/null; then
-      echo ":: Error: $dep is not installed."
-      exit 1
+  deps=(imagemagick gum fd)
+  missing_deps=()
+  for dep in "${deps[@]}"; do
+    if ! pacman -Qi "$dep" &>/dev/null; then
+      missing_deps+=("$dep")
     fi
   done
+  if [[ -n $missing_deps ]]; then
+    echo "[Error] missing dependencies: ${missing_deps[*]}"
+    return 1
+  fi
 
   images=$(fd . --base-directory $wallpaper_dir -e jpg -e jpeg -e png -e gif -e bmp -e tiff -e tif -e webp -e ico -e jif -e psd -e dds -e heif -e heic)
   if [ -z "$images" ]; then
-    echo "Error: No image file found in ~/Pictures/Wallpapers."
-    exit 1
+    echo "[Error] No image file found in ~/Pictures/Wallpapers."
+    return 1
   fi
   image="$wallpaper_dir/$(echo "$images" | gum choose --header 'Choose from ~/Pictures/Wallpapers: ')"
   image_name=$(basename -- "$image")
@@ -156,9 +158,9 @@ change-wallpaper() {
 
   if [[ $XDG_CURRENT_DESKTOP == "Hyprland" ]]; then
 
-    old=$(fd current $HOME/Hypr/wallpapers --no-ignore)
-    new="$HOME/Hypr/wallpapers/current_wallpaper.$extension"
-    blurred="$HOME/Hypr/wallpapers/blurred_wallpaper.png"
+    old=$(fd current $HYPRCONF/wallpapers --no-ignore)
+    new="$HYPRCONF/wallpapers/current_wallpaper.$extension"
+    blurred="$HYPRCONF/wallpapers/blurred_wallpaper.png"
 
     dimensions=$(magick identify -format "%w %h" $image)
     width=$(echo $dimensions | cut -d' ' -f1)
@@ -192,31 +194,49 @@ change-wallpaper() {
     fi
     magick $new -blur 50x30 $blurred
     killall hyprpaper
-    wal_tpl=$(cat $HOME/Hypr/hypr/hyprpaper.tpl)
+    wal_tpl=$(cat $HYPRCONF/hypr/hyprpaper.tpl)
     output=${wal_tpl//WALLPAPER/$new}
-    echo "$output" >$HOME/Hypr/hypr/hyprpaper.conf
+    echo "$output" >$HYPRCONF/hypr/hyprpaper.conf
     (hyprpaper &>/dev/null &)
-    echo "OK!"
+    if [ $? -eq 0 ]; then
+      echo "OK!"
+    else
+      return 1
+    fi
 
   elif [[ $XDG_CURRENT_DESKTOP == "niri" ]]; then
 
     mode=$(echo "stretch\nfill\nfit\ncenter\ntile" | gum choose --header "Select wallpaper mode: ")
     new_cmd="swaybg -i $image -m $mode -c 000000"
-    niri_config="$HOME/Niri/niri/config.kdl"
-    if ! grep -q "spawn-at-startup \"sh\" \"-c\" \"swaybg" "$niri_config"; then
-      sed -i "/\/\/ startup processes/a spawn-at-startup \"sh\" \"-c\" \"$new_cmd\"" "$niri_config"
+    if ! grep -q "spawn-at-startup \"sh\" \"-c\" \"swaybg" "$NIRICONF/niri/config.kdl"; then
+      sed -i "/\/\/ startup processes/a spawn-at-startup \"sh\" \"-c\" \"$new_cmd\"" "$NIRICONF/niri/config.kdl"
     else
-      sed -i "s|^spawn-at-startup \"sh\" \"-c\" \"swaybg.*|spawn-at-startup \"sh\" \"-c\" \"$new_cmd\"|" "$niri_config"
+      sed -i "s|^spawn-at-startup \"sh\" \"-c\" \"swaybg.*|spawn-at-startup \"sh\" \"-c\" \"$new_cmd\"|" "$NIRICONF/niri/config.kdl"
     fi
     echo "Selected: $(basename $image)"
     echo "Mode: $mode"
     pkill swaybg
     (eval $new_cmd &>/dev/null &)
+    if [ $? -eq 0 ]; then
+      echo "OK!"
+    else
+      return 1
+    fi
+
+  elif [[ $XDG_CURRENT_DESKTOP == "GNOME" ]]; then
+
+    mode=$(echo "wallpaper\ncentered\nscaled\nstretched\nzoom\nspanned" | gum choose --header "Select wallpaper mode: ")
+    gsettings set org.gnome.desktop.background picture-uri "file://$image"
+    gsettings set org.gnome.desktop.background picture-uri-dark "file://$image"
+    gsettings set org.gnome.desktop.background picture-options $mode
+    gsettings set org.gnome.desktop.background primary-color "#000000"
+    echo "Selected: $(basename $image)"
+    echo "Mode: $mode"
     echo "OK!"
 
   else
-    echo "Unsupport session: $XDG_CURRENT_DESKTOP."
-    exit 1
+    echo "[Error] Unsupport session: $XDG_CURRENT_DESKTOP."
+    return 1
   fi
 }
 
@@ -228,6 +248,7 @@ alias inst="paru -S"
 alias uninst="paru -Rns"
 alias up="paru -Syu"
 alias mirrors="rate-mirrors --allow-root --protocol https arch | grep -v '^#' | sudo tee /etc/pacman.d/mirrorlist"
+
 pkglist() {
   local all=false
   while [[ $# -gt 0 ]]; do
@@ -269,12 +290,6 @@ cleanup() {
   sudo pacman -Rns $(pacman -Qtdq)
   paru -Scc
 }
-
-# ---------------------------------------------------------------------------- #
-#                                COLOR SEQUENCES                               #
-# ---------------------------------------------------------------------------- #
-
-cat $HOME/.config/zsh/sequences
 
 # ---------------------------------------------------------------------------- #
 #                                     PYENV                                    #
