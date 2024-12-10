@@ -136,12 +136,12 @@ for pkg in ${selected_pkgs[@]}; do
     dconf load / <$config_folder/gnome-shell/wm-preferences.ini
     ;;
   gnome-terminal)
-    dconf load / <$config_folder/gnome-shell/terminal-theme.ini
+    dconf load / <$config_folder/gnome-terminal/terminal-theme.ini
     ;;
   greetd-tuigreet)
     sudo systemctl enable greetd.service
-    sudo cp $config_folder/greetd/config.toml /etc/greetd/config.toml
-    sudo cp $config_folder/greetd/override.conf /etc/systemd/system/greetd.service.d/override.conf
+    sudo cp $config_folder/greetd-tuigreet/config.toml /etc/greetd/config.toml
+    sudo cp $config_folder/greetd-tuigreet/override.conf /etc/systemd/system/greetd.service.d/override.conf
     ;;
   htop)
     symlink $config_folder/htop --to-config
