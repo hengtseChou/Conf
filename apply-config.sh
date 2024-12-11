@@ -74,6 +74,7 @@ export GUM_CHOOSE_SELECTED_FOREGROUND="#758A9B"
 export GUM_CHOOSE_CURSOR_FOREGROUND="#758A9B"
 
 pkgs=(
+  btop
   cava
   chromium
   docker
@@ -115,6 +116,9 @@ config_folder="$(dirname "$(realpath "$0")")"
 
 for pkg in ${selected_pkgs[@]}; do
   case $pkg in
+  btop)
+    sudo setcap cap_perfmon=+ep /usr/bin/btop
+    ;;
   cava)
     symlink $config_folder/cava/config --custom-dir ~/.config/cava
     ;;
