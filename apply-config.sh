@@ -132,6 +132,7 @@ for pkg in ${selected_pkgs[@]}; do
     symlink $config_folder/go/env --custom-dir ~/.config/go
     ;;
   gnome-shell)
+    dconf load / <$config_folder/gnome-shell/extensions.ini
     dconf load / <$config_folder/gnome-shell/keybindings.ini
     dconf load / <$config_folder/gnome-shell/wm-preferences.ini
     ;;
