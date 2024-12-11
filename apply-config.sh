@@ -69,6 +69,10 @@ symlink() {
   fi
 }
 
+export GUM_CHOOSE_HEADER_FOREGROUND="$#d8dadd"
+export GUM_CHOOSE_SELECTED_FOREGROUND="#758A9B"
+export GUM_CHOOSE_CURSOR_FOREGROUND="#758A9B"
+
 pkgs=(
   cava
   chromium
@@ -101,6 +105,10 @@ for pkg in "${pkgs[@]}"; do
     installed_pkgs+=("$pkg")
   fi
 done
+if [ ${#installed_pkgs[@]} -eq 0 ]; then
+  echo "No package available to configure"
+  exit 0
+fi
 
 selected_pkgs=$(gum choose "${installed_pkgs[@]}" --header "Apply configuration for:" --no-limit)
 config_folder="$(dirname "$(realpath "$0")")"
