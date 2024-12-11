@@ -44,16 +44,9 @@ autoload -U compinit && compinit
 zinit cdreplay -q
 
 # History
-HISTSIZE=5000
-HISTFILE=~/.zsh_history
-SAVEHIST=$HISTSIZE
-HISTDUP=erase
 setopt appendhistory
 setopt sharehistory
 setopt hist_ignore_space
-setopt hist_ignore_all_dups
-setopt hist_save_no_dups
-setopt hist_ignore_dups
 setopt hist_find_no_dups
 
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
@@ -123,6 +116,10 @@ log-out() {
   else
     echo "Unknown session: $XDG_CURRENT_DESKTOP."
   fi
+}
+
+top-command() {
+  history | awk '{CMD[$2]++;count++;}END { for (a in CMD)print CMD[a] " " CMD[a]/count*100 "% " a;}' | grep -v "./" | column -c3 -s " " -t | sort -nr | nl | head -n10
 }
 
 change-wallpaper() {
