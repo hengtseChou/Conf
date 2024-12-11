@@ -4,7 +4,7 @@ is_installed() {
 }
 
 if ! is_installed gum; then
-  echo "[Error] missing dependency: gum"
+  printf "[ERROR] missing dependency: gum\n"
   exit 1
 fi
 
@@ -38,7 +38,7 @@ symlink() {
       break
       ;;
     *)
-      echo "Invalid option: $1" >&2
+      printf "[ERROR] Invalid option: $1\n" >&2
       return 1
       ;;
     esac
@@ -46,7 +46,7 @@ symlink() {
 
   # If no valid options were provided (target_dir is empty), show an error and exit
   if [ -z "$target_dir" ]; then
-    echo "[Error] target dir $target_dir is empty"
+    printf "[ERROR] target dir $target_dir is empty\n"
     return 1
   fi
 
@@ -107,7 +107,7 @@ for pkg in "${pkgs[@]}"; do
   fi
 done
 if [ ${#installed_pkgs[@]} -eq 0 ]; then
-  echo "No package available to configure"
+  printf "[INFO] No package available to configure\n"
   exit 0
 fi
 
@@ -115,6 +115,7 @@ selected_pkgs=$(gum choose "${installed_pkgs[@]}" --header "Apply configuration 
 config_folder="$(dirname "$(realpath "$0")")"
 
 for pkg in ${selected_pkgs[@]}; do
+  printf "[INFO] Configuring: $pkg...\n"
   case $pkg in
   btop)
     sudo setcap cap_perfmon=+ep /usr/bin/btop
@@ -136,6 +137,7 @@ for pkg in ${selected_pkgs[@]}; do
     ;;
   fontconfig)
     symlink $config_folder/fontconfig --to-config
+    fc-cache -f
     ;;
   git)
     symlink $config_folder/git/.gitconfig --to-home
@@ -175,8 +177,8 @@ for pkg in ${selected_pkgs[@]}; do
     symlink $config_folder/paru --to-config
     ;;
   r)
-    symlink $config_folder/R/.Rprofile --to-home
-    symlink $config_folder/R/.Renviron --to-home
+    symlink $config_folder/r/.Rprofile --to-home
+    symlink $config_folder/r/.Renviron --to-home
     ;;
   rstudio-desktop-bin)
     symlink $config_folder/rstudio/config.json --custom-dir ~/.config/rstudio
@@ -195,9 +197,8 @@ for pkg in ${selected_pkgs[@]}; do
     symlink $config_folder/code/code-flags.conf --to-config
     ;;
   zsh)
-    symlink $config_folder/zsh --to-config
     symlink $config_folder/zsh/.zshrc --to-home
     ;;
   esac
-  printf "Configured: $pkg\n"
+  printf "[INFO] OK\n"
 done
