@@ -249,39 +249,35 @@ alias up="paru -Syu"
 alias mirrors="rate-mirrors --allow-root --protocol https arch | grep -v '^#' | sudo tee /etc/pacman.d/mirrorlist"
 
 pkglist() {
-  local all=false
-  while [[ $# -gt 0 ]]; do
-    case $1 in
-    -a)
-      all=true
-      shift
-      ;;
-    *) return 1 ;;
-    esac
-  done
-  if $all; then
+  if [[ $# -eq 0 ]]; then
     pacman -Qq | fzf --preview 'paru -Qi {}' --layout=reverse
-  else
+  elif [[ $# -gt 0 ]] && [[ $1 == '-e' ]]; then
     pacman -Qqe | fzf --preview 'paru -Qi {}' --layout=reverse
+  else
+    echo "[Error] Unknown argument: $1"
+    return 1
   fi
+}
 
+pkgcount() {
+  if [[ $# -eq 0 ]]; then
+    pacman -Qq | wc -l
+  elif [[ $# -gt 0 ]] && [[ $1 == '-e' ]]; then
+    pacman -Qqe | wc -l
+  else
+    echo "[Error] Unknown argument: $1"
+    return 1
+  fi
 }
 
 pkgsearch() {
-  local aur=false
-  while [[ $# -gt 0 ]]; do
-    case $1 in
-    -a)
-      aur=true
-      shift
-      ;;
-    *) return 1 ;;
-    esac
-  done
-  if $aur; then
+  if [[ $# -eq 0 ]]; then
+    pacman -Slq | fzf --preview 'pacman -Si {}' --layout=reverse --bind 'enter:execute(sudo pacman -S {})'
+  elif [[ $# -gt 0 ]] && [[ $1 == '-a' ]]; then
     paru -Slqa | fzf --preview 'paru -Si {}' --layout=reverse --bind 'enter:execute(paru -S {})'
   else
-    pacman -Slq | fzf --preview 'pacman -Si {}' --layout=reverse --bind 'enter:execute(sudo pacman -S {})'
+    echo "[Error] Unknown argument: $1"
+    return 1
   fi
 }
 
