@@ -1,3 +1,4 @@
 cava/shaders/
 fcitx5/conf/cached_layouts
 .githooks/
+fontconfig/conf.d/
