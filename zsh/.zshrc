@@ -179,6 +179,10 @@ change-wallpaper() {
     fi
 
     mode=$(echo "fill\nfit\ncenter" | gum choose --header "Select wallpaper mode: ")
+    if [[ "$image" == "$wallpaper_dir/" || -z $mode ]]; then
+      echo "[Error] No image or mode selected."
+      return 1
+    fi
 
     rm -f $old
     echo "Selected: $(basename $image)"
@@ -206,6 +210,10 @@ change-wallpaper() {
   elif [[ $XDG_CURRENT_DESKTOP == "niri" ]]; then
 
     mode=$(echo "stretch\nfill\nfit\ncenter\ntile" | gum choose --header "Select wallpaper mode: ")
+    if [[ "$image" == "$wallpaper_dir/" || -z $mode ]]; then
+      echo "[Error] No image or mode selected."
+      return 1
+    fi
     new_cmd="swaybg -i $image -m $mode -c 000000"
     if ! grep -q "spawn-at-startup \"sh\" \"-c\" \"swaybg" "$NIRICONF/niri/config.kdl"; then
       sed -i "/\/\/ startup processes/a spawn-at-startup \"sh\" \"-c\" \"$new_cmd\"" "$NIRICONF/niri/config.kdl"
@@ -225,6 +233,10 @@ change-wallpaper() {
   elif [[ $XDG_CURRENT_DESKTOP == "GNOME" ]]; then
 
     mode=$(echo "wallpaper\ncentered\nscaled\nstretched\nzoom\nspanned" | gum choose --header "Select wallpaper mode: ")
+    if [[ "$image" == "$wallpaper_dir/" || -z $mode ]]; then
+      echo "[Error] No image or mode selected."
+      return 1
+    fi
     gsettings set org.gnome.desktop.background picture-uri "file://$image"
     gsettings set org.gnome.desktop.background picture-uri-dark "file://$image"
     gsettings set org.gnome.desktop.background picture-options $mode
