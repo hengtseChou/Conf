@@ -44,10 +44,10 @@ autoload -U compinit && compinit
 zinit cdreplay -q
 
 # History
-HISTSIZE=10000
 SAVEHIST=10000
-setopt appendhistory
-setopt sharehistory
+HISTSIZE=10000
+HISTFILE=$HOME/.zsh_history
+setopt SHARE_HISTORY
 setopt hist_ignore_space
 setopt hist_find_no_dups
 
