@@ -131,7 +131,7 @@ change-wallpaper() {
   export GUM_CHOOSE_SELECTED_FOREGROUND="#758A9B"
   export GUM_CHOOSE_CURSOR_FOREGROUND="#758A9B"
   if [ ! -d $wallpaper_dir ]; then
-    echo "[Error] ~/Pictures/Wallpapers does not exist. Place images into this directory."
+    echo "[ERROR] ~/Pictures/Wallpapers does not exist. Place images into this directory."
     return 1
   fi
   deps=(imagemagick gum fd)
@@ -142,13 +142,13 @@ change-wallpaper() {
     fi
   done
   if [[ -n $missing_deps ]]; then
-    echo "[Error] missing dependencies: ${missing_deps[*]}"
+    echo "[ERROR] missing dependencies: ${missing_deps[*]}"
     return 1
   fi
 
   images=$(fd . --base-directory $wallpaper_dir -e jpg -e jpeg -e png -e gif -e bmp -e tiff -e tif -e webp -e ico -e jif -e psd -e dds -e heif -e heic)
   if [ -z "$images" ]; then
-    echo "[Error] No image file found in ~/Pictures/Wallpapers."
+    echo "[ERROR] No image file found in ~/Pictures/Wallpapers."
     return 1
   fi
   image="$wallpaper_dir/$(echo "$images" | gum choose --header 'Choose from ~/Pictures/Wallpapers: ')"
@@ -180,7 +180,7 @@ change-wallpaper() {
 
     mode=$(echo "fill\nfit\ncenter" | gum choose --header "Select wallpaper mode: ")
     if [[ "$image" == "$wallpaper_dir/" || -z $mode ]]; then
-      echo "[Error] No image or mode selected."
+      echo "[ERROR] No image or mode selected."
       return 1
     fi
 
@@ -211,7 +211,7 @@ change-wallpaper() {
 
     mode=$(echo "stretch\nfill\nfit\ncenter\ntile" | gum choose --header "Select wallpaper mode: ")
     if [[ "$image" == "$wallpaper_dir/" || -z $mode ]]; then
-      echo "[Error] No image or mode selected."
+      echo "[ERROR] No image or mode selected."
       return 1
     fi
     new_cmd="swaybg -i $image -m $mode -c 000000"
@@ -234,7 +234,7 @@ change-wallpaper() {
 
     mode=$(echo "wallpaper\ncentered\nscaled\nstretched\nzoom\nspanned" | gum choose --header "Select wallpaper mode: ")
     if [[ "$image" == "$wallpaper_dir/" || -z $mode ]]; then
-      echo "[Error] No image or mode selected."
+      echo "[ERROR] No image or mode selected."
       return 1
     fi
     gsettings set org.gnome.desktop.background picture-uri "file://$image"
@@ -246,7 +246,7 @@ change-wallpaper() {
     echo "OK!"
 
   else
-    echo "[Error] Unsupport session: $XDG_CURRENT_DESKTOP."
+    echo "[ERROR] Unsupport session: $XDG_CURRENT_DESKTOP."
     return 1
   fi
 }
@@ -266,7 +266,7 @@ pkglist() {
   elif [[ $# -gt 0 ]] && [[ $1 == '-e' ]]; then
     pacman -Qqe | fzf --preview 'paru -Qi {}' --layout=reverse
   else
-    echo "[Error] Unknown argument: $1"
+    echo "[ERROR] Unknown argument: $1"
     return 1
   fi
 }
@@ -277,7 +277,7 @@ pkgcount() {
   elif [[ $# -gt 0 ]] && [[ $1 == '-e' ]]; then
     pacman -Qqe | wc -l
   else
-    echo "[Error] Unknown argument: $1"
+    echo "[ERROR] Unknown argument: $1"
     return 1
   fi
 }
@@ -288,7 +288,7 @@ pkgsearch() {
   elif [[ $# -gt 0 ]] && [[ $1 == '-a' ]]; then
     paru -Slqa | fzf --preview 'paru -Si {}' --layout=reverse --bind 'enter:execute(paru -S {})'
   else
-    echo "[Error] Unknown argument: $1"
+    echo "[ERROR] Unknown argument: $1"
     return 1
   fi
 }
