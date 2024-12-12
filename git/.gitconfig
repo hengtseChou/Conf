@@ -4,6 +4,7 @@
 	untrack = update-index --assume-unchanged
 	track = update-index --no-assume-unchanged
 	retrack = update-index --no-assume-unchanged
+	drop = reset --hard
 [credential "https://github.com"]
 	helper = 
 	helper = !/usr/bin/gh auth git-credential
