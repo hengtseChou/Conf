@@ -91,6 +91,7 @@ alias wifi="nmtui connect"
 alias clock="peaclock"
 alias zshrc="nano $HOME/.zshrc"
 alias reload="source $HOME/.zshrc"
+alias weather="curl 'wttr.in/{Hsinchu,Taipei}?format=%l:+%c+%C+%t+%28%f%29\n'"
 
 ff() {
   if [[ $XDG_CURRENT_DESKTOP == 'Hyprland' ]]; then
