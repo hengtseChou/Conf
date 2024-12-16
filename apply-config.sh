@@ -121,7 +121,7 @@ for pkg in ${selected_pkgs[@]}; do
     sudo setcap cap_perfmon=+ep /usr/bin/btop
     ;;
   cava)
-    symlink $config_folder/cava/config --custom-dir ~/.config/cava
+    symlink $config_folder/cava --to-config
     ;;
   chromium)
     symlink $config_folder/chromium/chromium-flags.conf --to-config
