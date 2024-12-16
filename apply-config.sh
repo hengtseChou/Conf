@@ -34,11 +34,11 @@ symlink() {
       shift 2
       ;;
     --)
-      shift # End of options
+      shift
       break
       ;;
     *)
-      printf "[ERROR] Invalid option: $1\n" >&2
+      printf "[ERROR] symlink: invalid option $1\n"
       return 1
       ;;
     esac
@@ -46,7 +46,7 @@ symlink() {
 
   # If no valid options were provided (target_dir is empty), show an error and exit
   if [ -z "$target_dir" ]; then
-    printf "[ERROR] target dir $target_dir is empty\n"
+    printf "[ERROR] symlink: target dir $target_dir is empty\n"
     return 1
   fi
 
