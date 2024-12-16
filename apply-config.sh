@@ -74,6 +74,7 @@ export GUM_CHOOSE_SELECTED_FOREGROUND="#758A9B"
 export GUM_CHOOSE_CURSOR_FOREGROUND="#758A9B"
 
 pkgs=(
+  alacritty
   btop
   cava
   chromium
@@ -117,6 +118,9 @@ config_folder="$(dirname "$(realpath "$0")")"
 for pkg in ${selected_pkgs[@]}; do
   printf "[INFO] Configuring: $pkg...\n"
   case $pkg in
+  alacritty)
+    symlink $config_folder/alacritty --to-config
+    ;;
   btop)
     sudo setcap cap_perfmon=+ep /usr/bin/btop
     ;;
