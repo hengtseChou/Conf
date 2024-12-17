@@ -150,6 +150,7 @@ for pkg in ${selected_pkgs[@]}; do
     symlink $config_folder/git/.gitconfig --to-home
     ;;
   go)
+    sed -i "s|HOME|$HOME|g" $config_folder/go/env
     symlink $config_folder/go/env --custom-dir ~/.config/go
     ;;
   gnome-shell)
@@ -172,6 +173,7 @@ for pkg in ${selected_pkgs[@]}; do
     symlink $config_folder/nano/.nanorc --to-home
     ;;
   npm)
+    sed -i "s|HOME|$HOME|g" $config_folder/npm/.npmrc
     symlink $config_folder/npm/.npmrc --to-home
     ;;
   pacman)
@@ -194,6 +196,7 @@ for pkg in ${selected_pkgs[@]}; do
     printf "[INFO] need to gain write permission on Spotify\n"
     sudo chmod a+wr /opt/spotify
     sudo chmod a+wr /opt/spotify/Apps -R
+    sed -i "s|HOME|$HOME|g" $config_folder/spicetify/config-xpui.ini
     symlink $config_folder/spicetify/Extensions --custom-dir ~/.config/spicetify
     symlink $config_folder/spicetify/Themes --custom-dir ~/.config/spicetify
     symlink $config_folder/spicetify/config-xpui.ini --custom-dir ~/.config/spicetify
