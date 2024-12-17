@@ -20,3 +20,6 @@
 [pager]
 	branch = false
 	diff = false
+[user]
+	email = EMAIL
+	name = NAME
