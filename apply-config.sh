@@ -75,6 +75,7 @@ export GUM_CHOOSE_CURSOR_FOREGROUND="#758A9B"
 
 pkgs=(
   alacritty
+  aura
   btop
   cava
   chromium
@@ -88,7 +89,6 @@ pkgs=(
   go
   greetd-tuigreet
   htop
-  makepkg
   nano
   npm
   pacman
@@ -120,6 +120,9 @@ for pkg in ${selected_pkgs[@]}; do
   case $pkg in
   alacritty)
     symlink $config_folder/alacritty --to-config
+    ;;
+  aura)
+    symlink $config_folder/aura --to-config
     ;;
   btop)
     sudo setcap cap_perfmon=+ep /usr/bin/btop
@@ -159,14 +162,11 @@ for pkg in ${selected_pkgs[@]}; do
     ;;
   greetd-tuigreet)
     sudo systemctl enable greetd.service
-    sudo cp $config_folder/greetd-tuigreet/config.toml /etc/greetd/config.toml
-    sudo cp $config_folder/greetd-tuigreet/override.conf /etc/systemd/system/greetd.service.d/override.conf
+    sudo cp $config_folder/tuigreet/config.toml /etc/greetd/config.toml
+    sudo cp $config_folder/tuigreet/override.conf /etc/systemd/system/greetd.service.d/override.conf
     ;;
   htop)
     symlink $config_folder/htop --to-config
-    ;;
-  makepkg)
-    sudo cp $config_folder/makepkg/makepkg.conf /etc/makepkg.conf
     ;;
   nano)
     symlink $config_folder/nano/.nanorc --to-home
@@ -176,6 +176,7 @@ for pkg in ${selected_pkgs[@]}; do
     ;;
   pacman)
     sudo cp $config_folder/pacman/pacman.conf /etc/pacman.conf
+    sudo cp $config_folder/pacman/makepkg.conf /etc/makepkg.conf
     ;;
   paru)
     symlink $config_folder/paru --to-config
@@ -190,9 +191,13 @@ for pkg in ${selected_pkgs[@]}; do
     symlink $config_folder/rstudio/rstudio-prefs.json --custom-dir ~/.config/rstudio
     ;;
   spicetify-cli)
+    printf "[INFO] need to gain write permission on Spotify\n"
+    sudo chmod a+wr /opt/spotify
+    sudo chmod a+wr /opt/spotify/Apps -R
     symlink $config_folder/spicetify/Extensions --custom-dir ~/.config/spicetify
     symlink $config_folder/spicetify/Themes --custom-dir ~/.config/spicetify
     symlink $config_folder/spicetify/config-xpui.ini --custom-dir ~/.config/spicetify
+    spicetify backup apply
     ;;
   spotify)
     symlink $config_folder/spotify/spotify-flags.conf --to-config
