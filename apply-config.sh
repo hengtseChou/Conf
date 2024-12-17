@@ -212,7 +212,7 @@ for pkg in ${selected_pkgs[@]}; do
     symlink $config_folder/rstudio/rstudio-prefs.json --custom-dir ~/.config/rstudio
     ;;
   spicetify-cli)
-    printf "[INFO] need to gain write permission on Spotify\n"
+    printf "[INFO] Need to gain write permission on Spotify\n"
     sudo chmod a+wr /opt/spotify
     sudo chmod a+wr /opt/spotify/Apps -R
     sed -i "s|HOME|$HOME|g" $config_folder/spicetify/config-xpui.ini
