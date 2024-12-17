@@ -14,7 +14,6 @@ export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/.npm-global/bin:$PATH"
 export PATH="$HOME/.cargo/bin:$PATH"
 export PATH="$HOME/.go/bin:$PATH"
-export PATH="$HOME/.pyenv/bin:$PATH"
 export PATH="$HOME/.spicetify:$PATH"
 
 # ---------------------------------------------------------------------------- #
@@ -83,6 +82,7 @@ alias gb="git branch"
 alias gsw="git switch"
 alias gd="git diff"
 alias gcl="git clone"
+source /usr/share/doc/git-extras/git-extras-completion.zsh
 
 # ---------------------------------------------------------------------------- #
 #                                   SHORTCUTS                                  #
@@ -266,6 +266,8 @@ alias inst="paru -S"
 alias uninst="paru -Rns"
 alias up="paru -Syu"
 alias mirrors="rate-mirrors --allow-root --protocol https arch | grep -v '^#' | sudo tee /etc/pacman.d/mirrorlist"
+alias deps-upward="aura deps --open"
+alias deps-downward="aura deps --open --reverse"
 
 pkglist() {
   if [[ $# -eq 0 ]]; then
@@ -304,15 +306,6 @@ cleanup() {
   sudo pacman -Rns $(pacman -Qtdq)
   paru -Scc
 }
-
-# ---------------------------------------------------------------------------- #
-#                                     PYENV                                    #
-# ---------------------------------------------------------------------------- #
-
-if command -v pyenv 2>&1 >/dev/null; then
-  eval "$(pyenv init -)"
-  export PY3_10="$HOME/.pyenv/versions/3.10.14/bin/python3.10"
-fi
 
 # ---------------------------------------------------------------------------- #
 #                              SHELL INTEGRATIONS                              #
