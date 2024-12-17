@@ -69,9 +69,12 @@ symlink() {
   fi
 }
 
-export GUM_CHOOSE_HEADER_FOREGROUND="$#d8dadd"
+export GUM_CHOOSE_HEADER_FOREGROUND="#d8dadd"
 export GUM_CHOOSE_SELECTED_FOREGROUND="#758A9B"
 export GUM_CHOOSE_CURSOR_FOREGROUND="#758A9B"
+export GUM_INPUT_HEADER_FOREGROUND="#d8dadd"
+export GUM_INPUT_PROMPT_FOREGROUND="#758A9B"
+export GUM_INPUT_CURSOR_FOREGROUND="#758A9B"
 
 pkgs=(
   alacritty
@@ -147,6 +150,14 @@ for pkg in ${selected_pkgs[@]}; do
     fc-cache -f
     ;;
   git)
+    if cat $config_folder/git/.gitconfig | grep -q "NAME"; then
+      name=$(gum input --header "[INFO] Enter user name: ")
+      sed -i "s|NAME|$name|g" $config_folder/git/.gitconfig
+    fi
+    if cat $config_folder/git/.gitconfig | grep -q "EMAIL"; then
+      email=$(gum input --header "[INFO] Enter user email: ")
+      sed -i "s|EMAIL|$email|g" $config_folder/git/.gitconfig
+    fi
     symlink $config_folder/git/.gitconfig --to-home
     ;;
   go)
@@ -177,6 +188,14 @@ for pkg in ${selected_pkgs[@]}; do
     symlink $config_folder/npm/.npmrc --to-home
     ;;
   pacman)
+    if cat $config_folder/pacman/makepkg.conf | grep -q "NAME"; then
+      name=$(gum input --header "[INFO] Enter packager name: ")
+      sed -i "s|NAME|$name|g" $config_folder/pacman/makepkg.conf
+    fi
+    if cat $config_folder/pacman/makepkg.conf | grep -q "EMAIL"; then
+      email=$(gum input --header "[INFO] Enter packager email: ")
+      sed -i "s|EMAIL|$email|g" $config_folder/pacman/makepkg.conf
+    fi
     sudo cp $config_folder/pacman/pacman.conf /etc/pacman.conf
     sudo cp $config_folder/pacman/makepkg.conf /etc/makepkg.conf
     ;;
