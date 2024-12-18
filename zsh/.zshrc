@@ -303,8 +303,28 @@ pkgsearch() {
 }
 
 cleanup() {
-  sudo pacman -Rns $(pacman -Qtdq)
-  paru -Scc
+  orphans=$(pacman -Qtdq)
+  if [[ -n $orphans ]]; then
+    sudo pacman -Rns $orphans
+  else
+    printf "[INFO] No orphan\n"
+  fi
+  paru_cache="$HOME/.cache/paru"
+  lookup_result=$(fd -a 'tar|deb' $paru_cache | grep -v 'pkg.tar.zst')
+  if [[ -n $lookup_result ]]; then
+    printf "[INFO] Removing: \n"
+    echo $lookup_result | xargs printf "   - %s\n"
+    printf "[INFO] Proceed? [Y/n]: "
+    read choice
+    choice=${choice:-Y}
+    if [[ $choice =~ ^[Yy]$ ]]; then
+      rm $(fd -a 'tar|deb' $paru_cache | grep -v 'pkg.tar.zst')
+    fi
+  else
+    printf "[INFO] No AUR cache\n"
+  fi
+  printf "[INFO] OK\n"
+
 }
 
 # ---------------------------------------------------------------------------- #
