@@ -307,10 +307,10 @@ cleanup() {
   if [[ -n $orphans ]]; then
     sudo pacman -Rns $orphans
   else
-    printf "[INFO] No orphan\n"
+    printf "[INFO] No orphan packages\n"
   fi
   paru_cache="$HOME/.cache/paru"
-  lookup_result=$(fd -a 'tar|deb' $paru_cache | grep -v 'pkg.tar.zst')
+  lookup_result=$(fd --absolute-path --no-ignore '\.tar.gz$|\.deb$' $paru_cache | grep -v 'pkg.tar.zst')
   if [[ -n $lookup_result ]]; then
     printf "[INFO] Removing: \n"
     echo $lookup_result | xargs printf "   - %s\n"
@@ -318,13 +318,15 @@ cleanup() {
     read choice
     choice=${choice:-Y}
     if [[ $choice =~ ^[Yy]$ ]]; then
-      rm $(fd -a 'tar|deb' $paru_cache | grep -v 'pkg.tar.zst')
+      rm $(fd --absolute-path --no-ignore '\.tar\.gz$|\.deb$' $paru_cache | grep -v 'pkg.tar.zst')
+      if [[ $? -eq 0 ]]; then
+        printf "[INFO] Removal completed\n"
+      fi
     fi
   else
     printf "[INFO] No AUR cache\n"
   fi
   printf "[INFO] OK\n"
-
 }
 
 # ---------------------------------------------------------------------------- #
