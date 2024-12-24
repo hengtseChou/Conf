@@ -100,6 +100,7 @@ pkgs=(
   rstudio-desktop-bin
   spicetify-cli
   spotify
+  starship
   visual-studio-code-bin
   zsh
 )
@@ -223,6 +224,9 @@ for pkg in ${selected_pkgs[@]}; do
     ;;
   spotify)
     symlink $config_folder/spotify/spotify-flags.conf --to-config
+    ;;
+  starship)
+    symlink $config_folder/starship/starship.toml --to-config
     ;;
   visual-studio-code-bin)
     symlink $config_folder/code/code-flags.conf --to-config
