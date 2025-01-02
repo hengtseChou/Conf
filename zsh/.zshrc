@@ -310,6 +310,20 @@ cleanup() {
   else
     printf "[INFO] No orphan packages\n"
   fi
+  pacman_cache=$(echo $(paccache -d) | grep -oP 'disk space saved: \K[0-9.]+ [A-Za-z]+')
+  if [[ -n $pacman_cache ]]; then
+    printf "[INFO] Pacman cache found. Save $pacman_cache? [Y/n]: "
+    read choice
+    choice=${choice:-Y}
+    if [[ $choice =~ ^[Yy]$ ]]; then
+      sudo paccache -rq
+      if [[ $? -eq 0 ]]; then
+        printf "[INFO] Pacman cache removed\n"
+      fi
+    fi
+  else
+    printf "[INFO] No pacman cache\n"
+  fi
   paru_cache="$HOME/.cache/paru"
   lookup_result=$(fd --absolute-path --no-ignore '\.tar.gz$|\.deb$' $paru_cache | grep -v 'pkg.tar.zst')
   if [[ -n $lookup_result ]]; then
