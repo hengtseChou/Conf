@@ -205,7 +205,6 @@ for pkg in ${selected_pkgs[@]}; do
     ;;
   r)
     symlink $config_folder/r/.Rprofile --to-home
-    symlink $config_folder/r/.Renviron --to-home
     ;;
   rstudio-desktop-bin)
     symlink $config_folder/rstudio/config.json --custom-dir ~/.config/rstudio
