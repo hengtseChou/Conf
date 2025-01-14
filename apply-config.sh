@@ -143,6 +143,9 @@ for pkg in ${selected_pkgs[@]}; do
     sudo systemctl enable docker.service
     sudo systemctl enable containerd.service
     ;;
+  fastfetch)
+    symlink $config_folder/fastfetch --to-config
+    ;;
   fcitx5)
     symlink $config_folder/fcitx5 --to-config
     ;;
