@@ -307,7 +307,18 @@ pkgsearch() {
 cleanup() {
   orphans=$(pacman -Qtdq)
   if [[ -n $orphans ]]; then
-    sudo pacman -Rns $orphans
+    printf "[INFO] Removing orphan packages: \n"
+    echo $orphans | xargs printf "   - %s\n"
+    printf "[INFO] Proceed? [Y/n]: "
+    read choice
+    choice=${choice:-Y}
+    choice=${choice:-Y}
+    if [[ $choice =~ ^[Yy]$ ]]; then
+      echo "$orphans" | xargs sudo pacman -Rns --noconfirm
+      if [[ $? -eq 0 ]]; then
+        printf "[INFO] Removal completed\n"
+      fi
+    fi
   else
     printf "[INFO] No orphan packages\n"
   fi
@@ -328,7 +339,7 @@ cleanup() {
   paru_cache="$HOME/.cache/paru"
   lookup_result=$(fd --absolute-path --no-ignore '\.tar.gz$|\.deb$' $paru_cache | grep -v 'pkg.tar.zst')
   if [[ -n $lookup_result ]]; then
-    printf "[INFO] Removing: \n"
+    printf "[INFO] Removing AUR cache: \n"
     echo $lookup_result | xargs printf "   - %s\n"
     printf "[INFO] Proceed? [Y/n]: "
     read choice
