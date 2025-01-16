@@ -174,6 +174,8 @@ for pkg in ${selected_pkgs[@]}; do
     dconf load / <$config_folder/gnome-shell/wm-preferences.ini
     ;;
   gnome-terminal)
+    default_profile=$(gsettings get org.gnome.Terminal.ProfilesList default)
+    sed -i "s|DEFAULT|$default_profile|g" $config_folder/gnome-terminal/terminal-theme.ini
     dconf load / <$config_folder/gnome-terminal/terminal-theme.ini
     ;;
   greetd-tuigreet)
