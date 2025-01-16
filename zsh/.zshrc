@@ -266,6 +266,7 @@ change-wallpaper() {
 alias inst="paru -S"
 alias uninst="paru -Rns"
 alias up="paru -Syu"
+alias speed="speedtest-cli --bytes"
 alias mirrors="rate-mirrors --allow-root --protocol https arch | grep -v '^#' | sudo tee /etc/pacman.d/mirrorlist"
 alias deps-upward="aura deps --open"
 alias deps-downward="aura deps --open --reverse"
