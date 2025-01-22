@@ -5,6 +5,14 @@
 #  (_)___/____/_/ /_/_/   \___/
 
 # ---------------------------------------------------------------------------- #
+#                                 UTILITY FUNC                                 #
+# ---------------------------------------------------------------------------- #
+
+is_installed() {
+  pacman -Qi "$1" &>/dev/null
+}
+
+# ---------------------------------------------------------------------------- #
 #                                     PATH                                     #
 # ---------------------------------------------------------------------------- #
 
@@ -79,7 +87,9 @@ alias gb="git branch"
 alias gsw="git switch"
 alias gd="git diff"
 alias gcl="git clone"
-source /usr/share/doc/git-extras/git-extras-completion.zsh
+if is_installed git-extras; then
+  source /usr/share/doc/git-extras/git-extras-completion.zsh
+fi
 
 # ---------------------------------------------------------------------------- #
 #                                   SHORTCUTS                                  #
@@ -142,7 +152,7 @@ change-wallpaper() {
   deps=(imagemagick gum fd)
   missing_deps=()
   for dep in "${deps[@]}"; do
-    if ! pacman -Qi "$dep" &>/dev/null; then
+    if ! is_installed "$dep"; then
       missing_deps+=("$dep")
     fi
   done
@@ -171,17 +181,13 @@ change-wallpaper() {
     if ! grep -q "spawn-at-startup \"swaybg\"" "$NIRICONF/niri/config.kdl"; then
       sed -i "/\/\/ startup processes/a spawn-at-startup $new_cmd" "$NIRICONF/niri/config.kdl"
     else
-      sed -i "s|^spawn-at-startup \"sh\" \"-c\" \"swaybg.*|spawn-at-startup $new_cmd|" "$NIRICONF/niri/config.kdl"
+      sed -i "s|^spawn-at-startup \"swaybg.*|spawn-at-startup $new_cmd|" "$NIRICONF/niri/config.kdl"
     fi
     echo "Selected: $(basename $image)"
     echo "Mode: $mode"
     pkill swaybg
     (eval $new_cmd &>/dev/null &)
-    if [ $? -eq 0 ]; then
-      echo "OK!"
-    else
-      return 1
-    fi
+    echo "OK!"
 
   elif [[ $XDG_CURRENT_DESKTOP == "GNOME" ]]; then
 
@@ -305,6 +311,12 @@ cleanup() {
 #                              SHELL INTEGRATIONS                              #
 # ---------------------------------------------------------------------------- #
 
-eval "$(fzf --zsh)"
-eval "$(zoxide init zsh)"
-eval "$(starship init zsh)"
+if is_installed fzf; then
+  eval "$(fzf --zsh)"
+fi
+if is_installed zoxide; then
+  eval "$(zoxide init zsh)"
+fi
+if is_installed starship; then
+  eval "$(starship init zsh)"
+fi
