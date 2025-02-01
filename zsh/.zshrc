@@ -141,12 +141,12 @@ most() {
 
 change-wallpaper() {
 
-  wallpaper_dir="$HOME/Pictures/Wallpaper"
+  wallpaper_dir="$HOME/Pictures/Wallpapers"
   export GUM_CHOOSE_HEADER_FOREGROUND="#d8dadd"
   export GUM_CHOOSE_SELECTED_FOREGROUND="#758A9B"
   export GUM_CHOOSE_CURSOR_FOREGROUND="#758A9B"
   if [ ! -d $wallpaper_dir ]; then
-    echo "[ERROR] ~/Pictures/Wallpaper does not exist. Place images into this directory."
+    echo "[ERROR] ~/Pictures/Wallpapers does not exist. Place images into this directory."
     return 1
   fi
   deps=(imagemagick gum fd)
@@ -163,10 +163,10 @@ change-wallpaper() {
 
   images=$(fd . --base-directory $wallpaper_dir -e jpg -e jpeg -e png -e gif -e bmp -e tiff -e tif -e webp -e ico -e jif -e psd -e dds -e heif -e heic)
   if [ -z "$images" ]; then
-    echo "[ERROR] No image file found in ~/Pictures/Wallpaper."
+    echo "[ERROR] No image file found in ~/Pictures/Wallpapers."
     return 1
   fi
-  image="$wallpaper_dir/$(echo "$images" | gum choose --header 'Choose from ~/Pictures/Wallpaper: ')"
+  image="$wallpaper_dir/$(echo "$images" | gum choose --header 'Choose from ~/Pictures/Wallpapers: ')"
   image_name=$(basename -- "$image")
   extension="${image_name##*.}"
 
