@@ -102,6 +102,7 @@ pkgs=(
   spotify
   starship
   visual-studio-code-bin
+  zed
   zsh
 )
 
@@ -235,6 +236,10 @@ for pkg in ${selected_pkgs[@]}; do
     ;;
   visual-studio-code-bin)
     symlink $config_folder/code/code-flags.conf --to-config
+    ;;
+  zed)
+    symlink $config_folder/zed/keymap.json --custom-dir ~/.config/zed
+    symlink $config_folder/zed/settings.json --custom-dir ~/.config/zed
     ;;
   zsh)
     symlink $config_folder/zsh/.zshrc --to-home
