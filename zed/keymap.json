@@ -8,14 +8,10 @@
 [
   {
     "context": "Workspace",
-    "bindings": {
-      // "shift shift": "file_finder::Toggle"
-    }
+    "bindings": {}
   },
   {
     "context": "Editor",
-    "bindings": {
-      // "j k": ["workspace::SendKeystrokes", "escape"]
-    }
+    "bindings": {}
   }
 ]

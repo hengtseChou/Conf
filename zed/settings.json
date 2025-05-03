@@ -7,22 +7,79 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
-  "icon_theme": "Material Icon Theme",
+  // Appearance settings
   "theme": {
     "mode": "system",
     "light": "One Light",
     "dark": "0x96f Theme"
   },
-  "ui_font_size": 16,
-  "ui_font_family": "JetBrainsMono Nerd Font Mono",
-  "buffer_font_size": 16,
+  "icon_theme": "Material Icon Theme",
   "buffer_font_family": "JetBrainsMono Nerd Font Mono",
+  "buffer_font_size": 16,
+  "ui_font_family": "JetBrainsMono Nerd Font Mono",
+  "ui_font_size": 16,
+
+  // Features and behavior
+  "features": {
+    "edit_prediction_provider": "zed"
+  },
   "hover_popover_delay": 50,
+  "collaboration_panel": {
+    "button": false
+  },
+
+  // Assistant configuration
+  "assistant": {
+    "default_model": {
+      "provider": "copilot_chat",
+      "model": "gpt-4o"
+    },
+    "version": "2"
+  },
+
+  // Language-specific settings
   "languages": {
+    "JavaScript": {
+      "tab_size": 2,
+      "format_on_save": "on",
+      "code_actions_on_format": {
+        "source.fixAll.eslint": true,
+        "source.organizeImports.eslint": true
+      }
+    },
+    "JSON": {
+      "tab_size": 2,
+      "format_on_save": "on"
+    },
+    "Markdown": {
+      "format_on_save": "on",
+      "prettier": { "allowed": true }
+    },
     "Python": {
-      "language_servers": ["pyright", "ruff"]
+      "tab_size": 4,
+      "language_servers": ["pyright", "ruff"],
+      "format_on_save": "on",
+      "formatter": [
+        {
+          "code_actions": {
+            "source.fixAll.ruff": true,
+            "source.organizeImports.ruff": true
+          }
+        }
+      ]
+    },
+    "Shell Script": {
+      "tab_size": 2
+    },
+    "TOML": {
+      "tab_size": 4
+    },
+    "YAML": {
+      "tab_size": 2
     }
   },
+
+  // Language server protocol (LSP) settings
   "lsp": {
     "pyright": {
       "settings": {
@@ -34,6 +91,25 @@
           "pythonPath": ".venv/bin/python"
         }
       }
+    },
+    "ruff": {
+      "initialization_options": {
+        "settings": {
+          "exclude": [".venv"],
+          "lineLength": 100,
+          "lint": {
+            "select": ["I"],
+            "ignore": ["E501"]
+          }
+        }
+      }
     }
+  },
+
+  // Terminal settings
+  "terminal": {
+    "default_height": 500
   }
+
+  // Formatter settings
 }
