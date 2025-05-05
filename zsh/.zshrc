@@ -96,7 +96,6 @@ fi
 # ---------------------------------------------------------------------------- #
 
 alias e="exit"
-alias g="gnome-text-editor"
 alias ls="eza --icons --group-directories-first"
 alias ll="eza -l --icons --group-directories-first"
 alias lt="eza --tree --level=1 --icons --group-directories-first"
@@ -171,7 +170,6 @@ change-wallpaper() {
   extension="${image_name##*.}"
 
   if [[ $XDG_CURRENT_DESKTOP == "niri" ]]; then
-
     mode=$(echo "stretch\nfill\nfit\ncenter\ntile" | gum choose --header "Select wallpaper mode: ")
     if [[ "$image" == "$wallpaper_dir/" || -z $mode ]]; then
       echo "[ERROR] No image or mode selected."
@@ -190,7 +188,6 @@ change-wallpaper() {
     echo "OK!"
 
   elif [[ $XDG_CURRENT_DESKTOP == "GNOME" ]]; then
-
     mode=$(echo "wallpaper\ncentered\nscaled\nstretched\nzoom\nspanned" | gum choose --header "Select wallpaper mode: ")
     if [[ "$image" == "$wallpaper_dir/" || -z $mode ]]; then
       echo "[ERROR] No image or mode selected."
