@@ -179,7 +179,7 @@ for pkg in ${selected_pkgs[@]}; do
     dconf load / <$config_folder/gnome-shell/extensions.ini
     dconf load / <$config_folder/gnome-shell/keybindings.ini
     dconf load / <$config_folder/gnome-shell/wm-preferences.ini
-    echo 'export GTK2_RC_FILES="$XDG_CONFIG_HOME/gtk-2.0/gtkrc"' >> ~/.profile
+    echo 'export GTK2_RC_FILES="$XDG_CONFIG_HOME/gtk-2.0/gtkrc":"$XDG_CONFIG_HOME/gtk-2.0/gtkrc.mine"' >> ~/.profile
     ;;
   gnome-terminal)
     default_profile=$(gsettings get org.gnome.Terminal.ProfilesList default)
