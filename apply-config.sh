@@ -241,7 +241,7 @@ for pkg in ${selected_pkgs[@]}; do
     ;;
   visual-studio-code-bin)
     echo 'export VSCODE_PORTABLE="$XDG_DATA_HOME"/vscode' >> ~/.profile
-    symlink $config_folder/code/code-flags.conf --to-config
+    symlink $config_folder/visual-studio-code-bin/code-flags.conf --to-config
     ;;
   zed)
     symlink $config_folder/zed --to-config
