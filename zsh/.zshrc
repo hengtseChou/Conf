@@ -16,64 +16,73 @@ is_installed() {
 #                                     PATH                                     #
 # ---------------------------------------------------------------------------- #
 
-export PATH="/usr/lib/ccache/bin/:$PATH"
 export PATH="$HOME/Scripts:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
-export PATH="$HOME/.npm-global/bin:$PATH"
-export PATH="$HOME/.cargo/bin:$PATH"
-export PATH="$HOME/.go/bin:$PATH"
-export PATH="$HOME/.spicetify:$PATH"
-
-# ---------------------------------------------------------------------------- #
-#                                 ENV VARIABLES                                #
-# ---------------------------------------------------------------------------- #
-
-export VISUAL=nano
-export EDITOR="$VISUAL"
+export PATH="$XDG_DATA_HOME/npm/bin:$PATH"
+export PATH="$XDG_DATA_HOME/cargo/bin:$PATH"
+export PATH="$XDG_DATA_HOME/go/bin:$PATH"
 
 # ---------------------------------------------------------------------------- #
 #                                     ZINIT                                    #
 # ---------------------------------------------------------------------------- #
 
-ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
+export ZINIT_HOME="$XDG_DATA_HOME/zinit/zinit.git"
 [ ! -d $ZINIT_HOME ] && mkdir -p "$(dirname $ZINIT_HOME)"
 [ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
-source "${ZINIT_HOME}/zinit.zsh"
+source "$ZINIT_HOME/zinit.zsh"
 
-# Add in zsh plugins
-zinit light zsh-users/zsh-syntax-highlighting
-zinit light zsh-users/zsh-completions
-zinit light zsh-users/zsh-autosuggestions
-zinit light Aloxaf/fzf-tab
+# Use turbo mode for zinit plugins (deferred loading)
+zinit wait lucid light-mode for \
+  atload"_zsh_autosuggest_start" \
+  zsh-users/zsh-autosuggestions \
+  zsh-users/zsh-completions \
+  Aloxaf/fzf-tab
 
-# Add in snippets
-zinit snippet OMZP::sudo
+# Load syntax highlighting last
+zinit wait lucid light-mode for \
+  atinit"ZINIT[COMPINIT_OPTS]=-C; zicompinit; zicdreplay" \
+  zdharma-continuum/fast-syntax-highlighting
 
-# Load completions
-autoload -U compinit && compinit
-zinit cdreplay -q
+# Add in snippets (turbo mode)
+zinit wait lucid for \
+  OMZP::sudo
 
-# History
-SAVEHIST=10000
-HISTSIZE=10000
-HISTFILE=$HOME/.zsh_history
-setopt SHARE_HISTORY
-setopt hist_ignore_space
-setopt hist_find_no_dups
+# ---------------------------------------------------------------------------- #
+#                                      ZSH                                     #
+# ---------------------------------------------------------------------------- #
+
+setopt append_history inc_append_history share_history
+HISTSIZE=1000000
+SAVEHIST=1000000
+HISTCONTROL=ignoreboth
+[ -d "$XDG_DATA_HOME"/zsh ] || mkdir -p "$XDG_DATA_HOME"/zsh
+HISTFILE="$XDG_DATA_HOME"/zsh/history
+[ -d "$XDG_CACHE_HOME"/zsh ] || mkdir -p "$XDG_CACHE_HOME"/zsh
+autoload -Uz compinit
+if [ $(date +'%j') != $(stat -c '%Y' "$XDG_CACHE_HOME/zsh/zcompdump-$ZSH_VERSION" 2>/dev/null || echo 0) ]; then
+  compinit -d "$XDG_CACHE_HOME/zsh/zcompdump-$ZSH_VERSION"
+else
+  compinit -C -d "$XDG_CACHE_HOME/zsh/zcompdump-$ZSH_VERSION"
+fi
 
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 zstyle ':completion:*' menu no
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza --icons --group-directories-first $realpath'
+zstyle ':fzf-tab:*' use-fzf-default-opts yes
+bindkey "^[[H" beginning-of-line
+bindkey "^[[F" end-of-line
+bindkey "^[[3~" delete-char
+
+# ---------------------------------------------------------------------------- #
+#                                      FZF                                     #
+# ---------------------------------------------------------------------------- #
+
 export FZF_DEFAULT_OPTS="
   --color=fg:#d8dadd,bg:-1,hl:#B7D4ED
   --color=fg+:#d8dadd,bg+:-1,hl+:#BCC2C6
   --color=info:#B2BCC4,prompt:#758A9B,pointer:#B7D4ED
   --color=marker:#BCC2C6,spinner:#B7D4ED,header:#949EA3
   --layout=reverse"
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza --icons --group-directories-first $realpath'
-zstyle ':fzf-tab:*' use-fzf-default-opts yes
-bindkey "^[[H" beginning-of-line
-bindkey "^[[F" end-of-line
-bindkey "^[[3~" delete-char
 
 # ---------------------------------------------------------------------------- #
 #                                      GIT                                     #
@@ -102,8 +111,7 @@ alias lt="eza --tree --level=1 --icons --group-directories-first"
 alias lg="lazygit"
 alias wifi="nmtui connect"
 alias clock="peaclock"
-alias zshrc="nano $HOME/.zshrc"
-alias reload="source $HOME/.zshrc"
+alias reload="source $XDG_CONFIG_HOME/zsh/.zshrc"
 alias weather="curl 'wttr.in/{Hsinchu,Taipei}?format=%l:+%c+%C+%t+%28%f%29\n'"
 
 ff() {
@@ -139,7 +147,6 @@ most() {
 }
 
 change-wallpaper() {
-
   wallpaper_dir="$HOME/Pictures/Wallpapers"
   export GUM_CHOOSE_HEADER_FOREGROUND="#d8dadd"
   export GUM_CHOOSE_SELECTED_FOREGROUND="#758A9B"
@@ -170,6 +177,7 @@ change-wallpaper() {
   extension="${image_name##*.}"
 
   if [[ $XDG_CURRENT_DESKTOP == "niri" ]]; then
+    NIRICONF="$HOME/Niri"
     mode=$(echo "stretch\nfill\nfit\ncenter\ntile" | gum choose --header "Select wallpaper mode: ")
     if [[ "$image" == "$wallpaper_dir/" || -z $mode ]]; then
       echo "[ERROR] No image or mode selected."
@@ -310,10 +318,16 @@ cleanup() {
 
 if is_installed fzf; then
   eval "$(fzf --zsh)"
+else
+  printf "[WARNING] fzf is not installed\n"
 fi
 if is_installed zoxide; then
   eval "$(zoxide init zsh)"
+else
+  printf "[WARNING] zoxide is not installed\n"
 fi
 if is_installed starship; then
   eval "$(starship init zsh)"
+else
+  printf "[WARNING] starship is not installed\n"
 fi

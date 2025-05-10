@@ -29,7 +29,7 @@
   },
 
   // Assistant configuration
-  "assistant": {
+  "agent": {
     "default_model": {
       "provider": "copilot_chat",
       "model": "gpt-4o"
@@ -85,7 +85,7 @@
       "settings": {
         "python.analysis": {
           "diagnosticMode": "workspace",
-          "typeCheckingMode": "standard"
+          "typeCheckingMode": "off"
         },
         "python": {
           "pythonPath": ".venv/bin/python"

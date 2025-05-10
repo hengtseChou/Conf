@@ -89,6 +89,7 @@ pkgs=(
   git
   gnome-shell
   gnome-terminal
+  gnupg
   go
   greetd-tuigreet
   htop
@@ -96,8 +97,7 @@ pkgs=(
   npm
   pacman
   paru
-  r
-  rstudio-desktop-bin
+  python
   spicetify-cli
   spotify
   starship
@@ -117,9 +117,14 @@ if [ ${#installed_pkgs[@]} -eq 0 ]; then
   exit 0
 fi
 
-selected_pkgs=$(gum choose "${installed_pkgs[@]}" --header "Apply configuration for:" --no-limit)
 config_folder="$(dirname "$(realpath "$0")")"
+if [ ! -f ~/.profile ]; then
+  printf "[WARNING] ~/.profile not found\n"
+  printf "[WARNING] Creating a default one\n"
+  cp $config_folder/.profile ~/
+fi
 
+selected_pkgs=$(gum choose "${installed_pkgs[@]}" --header "Apply configuration for:" --no-limit)
 for pkg in ${selected_pkgs[@]}; do
   printf "[INFO] Configuring: $pkg...\n"
   case $pkg in
@@ -163,21 +168,26 @@ for pkg in ${selected_pkgs[@]}; do
       email=$(gum input --header "[INFO] Enter user email: ")
       sed -i "s|EMAIL|$email|g" $config_folder/git/.gitconfig
     fi
-    symlink $config_folder/git/.gitconfig --to-home
+    symlink $config_folder/git --to-config
     ;;
   go)
-    sed -i "s|HOME|$HOME|g" $config_folder/go/env
-    symlink $config_folder/go/env --custom-dir ~/.config/go
+    echo 'export GOPATH="$XDG_DATA_HOME/go"' >> ~/.profile
+    echo 'export GOBIN="$GOPATH/bin"' >> ~/.profile
+    echo 'export GOMODCACHE="$XDG_CACHE_HOME/go/mod"' >> ~/.profile
     ;;
   gnome-shell)
     dconf load / <$config_folder/gnome-shell/extensions.ini
     dconf load / <$config_folder/gnome-shell/keybindings.ini
     dconf load / <$config_folder/gnome-shell/wm-preferences.ini
+    echo 'export GTK2_RC_FILES="$XDG_CONFIG_HOME/gtk-2.0/gtkrc"' >> ~/.profile
     ;;
   gnome-terminal)
     default_profile=$(gsettings get org.gnome.Terminal.ProfilesList default)
     sed -i "s|DEFAULT|$default_profile|g" $config_folder/gnome-terminal/terminal-theme.ini
     dconf load / <$config_folder/gnome-terminal/terminal-theme.ini
+    ;;
+  gnupg)
+    echo 'export GNUPGHOME="$XDG_DATA_HOME/gnupg"' >> ~/.profile
     ;;
   greetd-tuigreet)
     sudo systemctl enable greetd.service
@@ -192,8 +202,8 @@ for pkg in ${selected_pkgs[@]}; do
     symlink $config_folder/nano/.nanorc --to-home
     ;;
   npm)
-    sed -i "s|HOME|$HOME|g" $config_folder/npm/.npmrc
-    symlink $config_folder/npm/.npmrc --to-home
+    symlink $config_folder/npm --to-config
+    echo 'export NPM_CONFIG_USERCONFIG="$XDG_CONFIG_HOME/npm/npmrc"' >> ~/.profile
     ;;
   pacman)
     if cat $config_folder/pacman/makepkg.conf | grep -q "NAME"; then
@@ -210,13 +220,8 @@ for pkg in ${selected_pkgs[@]}; do
   paru)
     symlink $config_folder/paru --to-config
     ;;
-  r)
-    symlink $config_folder/r/.Rprofile --to-home
-    ;;
-  rstudio-desktop-bin)
-    symlink $config_folder/rstudio/config.json --custom-dir ~/.config/rstudio
-    symlink $config_folder/rstudio/keybindings --custom-dir ~/.config/rstudio
-    symlink $config_folder/rstudio/rstudio-prefs.json --custom-dir ~/.config/rstudio
+  python)
+    echo 'export PYTHON_HISTORY="$XDG_DATA_HOME/python/history"' >> ~/.profile
     ;;
   spicetify-cli)
     printf "[INFO] Need to gain write permission on Spotify\n"
@@ -235,14 +240,15 @@ for pkg in ${selected_pkgs[@]}; do
     symlink $config_folder/starship/starship.toml --to-config
     ;;
   visual-studio-code-bin)
+    echo 'export VSCODE_PORTABLE="$XDG_DATA_HOME"/vscode' >> ~/.profile
     symlink $config_folder/code/code-flags.conf --to-config
     ;;
   zed)
-    symlink $config_folder/zed/keymap.json --custom-dir ~/.config/zed
-    symlink $config_folder/zed/settings.json --custom-dir ~/.config/zed
+    symlink $config_folder/zed --to-config
     ;;
   zsh)
-    symlink $config_folder/zsh/.zshrc --to-home
+    symlink $config_folder/zsh --to-config
+    echo 'export ZDOTDIR="$XDG_CONFIG_HOME/zsh"' >> ~/.profile
     ;;
   esac
   printf "[INFO] OK\n"
