@@ -160,13 +160,13 @@ for pkg in ${selected_pkgs[@]}; do
     fc-cache -f
     ;;
   git)
-    if cat $config_folder/git/.gitconfig | grep -q "NAME"; then
+    if cat $config_folder/git/config | grep -q "NAME"; then
       name=$(gum input --header "[INFO] Enter user name: ")
-      sed -i "s|NAME|$name|g" $config_folder/git/.gitconfig
+      sed -i "s|NAME|$name|g" $config_folder/git/config
     fi
-    if cat $config_folder/git/.gitconfig | grep -q "EMAIL"; then
+    if cat $config_folder/git/config | grep -q "EMAIL"; then
       email=$(gum input --header "[INFO] Enter user email: ")
-      sed -i "s|EMAIL|$email|g" $config_folder/git/.gitconfig
+      sed -i "s|EMAIL|$email|g" $config_folder/git/config
     fi
     symlink $config_folder/git --to-config
     ;;
