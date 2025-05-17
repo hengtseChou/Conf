@@ -5,22 +5,19 @@
 #  (_)___/____/_/ /_/_/   \___/
 
 # ---------------------------------------------------------------------------- #
-#                                 UTILITY FUNC                                 #
-# ---------------------------------------------------------------------------- #
-
-is_installed() {
-  pacman -Qi "$1" &>/dev/null
-}
-
-# ---------------------------------------------------------------------------- #
 #                                     PATH                                     #
 # ---------------------------------------------------------------------------- #
 
-export PATH="$HOME/Scripts:$PATH"
-export PATH="$HOME/.local/bin:$PATH"
-export PATH="$XDG_DATA_HOME/npm/bin:$PATH"
-export PATH="$XDG_DATA_HOME/cargo/bin:$PATH"
-export PATH="$XDG_DATA_HOME/go/bin:$PATH"
+typeset -U PATH path
+path=(
+  "$HOME/Scripts"
+  "$HOME/.local/bin"
+  "$XDG_DATA_HOME/npm/bin"
+  "$XDG_DATA_HOME/cargo/bin"
+  "$XDG_DATA_HOME/go/bin"
+  $path
+)
+export PATH
 
 # ---------------------------------------------------------------------------- #
 #                                     ZINIT                                    #
@@ -31,20 +28,22 @@ export ZINIT_HOME="$XDG_DATA_HOME/zinit/zinit.git"
 [ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
 source "$ZINIT_HOME/zinit.zsh"
 
-# Use turbo mode for zinit plugins (deferred loading)
-zinit wait lucid light-mode for \
+# Use turbo and ice modifiers to optimize plugin loading
+zinit wait"0" lucid light-mode for \
   atload"_zsh_autosuggest_start" \
-  zsh-users/zsh-autosuggestions \
+  zsh-users/zsh-autosuggestions
+
+zinit wait"0" lucid light-mode for \
   zsh-users/zsh-completions \
   Aloxaf/fzf-tab
 
-# Load syntax highlighting last
-zinit wait lucid light-mode for \
+# Load syntax highlighting last with optimized initialization
+zinit wait"0" lucid light-mode for \
   atinit"ZINIT[COMPINIT_OPTS]=-C; zicompinit; zicdreplay" \
   zdharma-continuum/fast-syntax-highlighting
 
 # Add in snippets (turbo mode)
-zinit wait lucid for \
+zinit wait"1" lucid for \
   OMZP::sudo
 
 # ---------------------------------------------------------------------------- #
@@ -55,20 +54,48 @@ setopt append_history inc_append_history share_history
 HISTSIZE=1000000
 SAVEHIST=1000000
 HISTCONTROL=ignoreboth
-[ -d "$XDG_DATA_HOME"/zsh ] || mkdir -p "$XDG_DATA_HOME"/zsh
-HISTFILE="$XDG_DATA_HOME"/zsh/history
-[ -d "$XDG_CACHE_HOME"/zsh ] || mkdir -p "$XDG_CACHE_HOME"/zsh
-autoload -Uz compinit
-if [ $(date +'%j') != $(stat -c '%Y' "$XDG_CACHE_HOME/zsh/zcompdump-$ZSH_VERSION" 2>/dev/null || echo 0) ]; then
-  compinit -d "$XDG_CACHE_HOME/zsh/zcompdump-$ZSH_VERSION"
-else
-  compinit -C -d "$XDG_CACHE_HOME/zsh/zcompdump-$ZSH_VERSION"
-fi
+[ -d "$XDG_DATA_HOME/zsh" ] || mkdir -p "$XDG_DATA_HOME/zsh"
+HISTFILE="$XDG_DATA_HOME/zsh/history"
 
+# Create cache directory if needed
+[ -d "$XDG_CACHE_HOME/zsh" ] || mkdir -p "$XDG_CACHE_HOME/zsh"
+
+# Define compdump file path once
+ZCOMPDUMP="$XDG_CACHE_HOME/zsh/zcompdump-$ZSH_VERSION"
+
+# Defer expensive completion initialization
+_defer_compinit() {
+  # Load completion system
+  autoload -Uz compinit
+
+  # Only rebuild once per day - using seconds since epoch is more reliable
+  local comp_mtime=$(stat -c %Y "$ZCOMPDUMP" 2>/dev/null || echo 0)
+  local current_time=$(date +%s)
+
+  if (( current_time - comp_mtime > 86400 )); then
+    # Full initialization if older than 24 hours
+    compinit -d "$ZCOMPDUMP"
+  else
+    # Fast initialization (skip security check)
+    compinit -C -d "$ZCOMPDUMP"
+  fi
+
+  # Cache completions for better performance
+  zstyle ':completion:*' use-cache on
+  zstyle ':completion:*' cache-path "$XDG_CACHE_HOME/zsh/zcompcache"
+
+  # Remove from precommand functions after first run
+  precmd_functions=(${precmd_functions:#_defer_compinit})
+}
+
+# Add to precmd to run after first prompt
+precmd_functions+=(_defer_compinit)
+
+# Completion styling (keep your existing settings)
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 zstyle ':completion:*' menu no
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza --icons --group-directories-first $realpath'
-zstyle ':fzf-tab:*' use-fzf-default-opts yes
+
+# Key bindings (keep your existing settings)
 bindkey "^[[H" beginning-of-line
 bindkey "^[[F" end-of-line
 bindkey "^[[3~" delete-char
@@ -83,6 +110,8 @@ export FZF_DEFAULT_OPTS="
   --color=info:#B2BCC4,prompt:#758A9B,pointer:#B7D4ED
   --color=marker:#BCC2C6,spinner:#B7D4ED,header:#949EA3
   --layout=reverse"
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza --icons --group-directories-first $realpath'
+zstyle ':fzf-tab:*' use-fzf-default-opts yes
 
 # ---------------------------------------------------------------------------- #
 #                                      GIT                                     #
@@ -96,7 +125,7 @@ alias gb="git branch"
 alias gsw="git switch"
 alias gd="git diff"
 alias gcl="git clone"
-if is_installed git-extras; then
+if command -v git-extras >/dev/null 2>&1; then
   source /usr/share/doc/git-extras/git-extras-completion.zsh
 fi
 
@@ -115,50 +144,57 @@ alias reload="source $XDG_CONFIG_HOME/zsh/.zshrc"
 alias weather="curl 'wttr.in/{Hsinchu,Taipei}?format=%l:+%c+%C+%t+%28%f%29\n'"
 
 ff() {
-  if [[ $XDG_CURRENT_DESKTOP == 'Hyprland' ]]; then
-    fastfetch --config $HOME/.config/fastfetch/hyprland.jsonc
-  elif [[ $XDG_CURRENT_DESKTOP == 'GNOME' ]]; then
-    fastfetch --config $HOME/.config/fastfetch/gnome.jsonc
-  elif [[ $XDG_CURRENT_DESKTOP == 'niri' ]]; then
-    fastfetch --config $HOME/.config/fastfetch/niri.jsonc
-  fi
+  local desktop="${XDG_CURRENT_DESKTOP:-}"
+  case "$desktop" in
+    Hyprland)
+      fastfetch --config "$HOME/.config/fastfetch/hyprland.jsonc"
+      ;;
+    GNOME)
+      fastfetch --config "$HOME/.config/fastfetch/gnome.jsonc"
+      ;;
+    niri)
+      fastfetch --config "$HOME/.config/fastfetch/niri.jsonc"
+      ;;
+    *)
+      fastfetch
+      ;;
+  esac
 }
 
 log-out() {
-  if [[ $XDG_CURRENT_DESKTOP == "Hyprland" ]]; then
-    echo "Session found: Hyprland. Logging out..."
-    sleep 2
-    hyprctl dispatch exit
-  elif [[ $XDG_CURRENT_DESKTOP == "GNOME" ]]; then
-    echo "Session found: GNOME. Logging out..."
-    sleep 2
-    gnome-session-quit --no-prompt
-  elif [[ $XDG_CURRENT_DESKTOP == "niri" ]]; then
-    echo "Session found: Niri. Logging out..."
-    sleep 2
-    pkill niri
-  else
-    echo "Unknown session: $XDG_CURRENT_DESKTOP."
-  fi
+  local desktop="${XDG_CURRENT_DESKTOP:-}"
+  case "$desktop" in
+    Hyprland)
+      echo "Session found: Hyprland. Logging out..."
+      sleep 2
+      hyprctl dispatch exit
+      ;;
+    GNOME)
+      echo "Session found: GNOME. Logging out..."
+      sleep 2
+      gnome-session-quit --no-prompt
+      ;;
+    niri)
+      echo "Session found: Niri. Logging out..."
+      sleep 2
+      pkill niri
+      ;;
+    *)
+      echo "Unknown session: $desktop."
+      ;;
+  esac
 }
 
-most() {
-  history 1 | awk '{for (i=2; i<=NF; i++) {if ($i=="sudo" && (i+1)<=NF) CMD[$(i+1)]++; else if (i==2) CMD[$i]++; count++}} END {for (a in CMD) print CMD[a], CMD[a]/count*100 "%", a}' | grep -v "./" | column -c3 -s " " -t | sort -nr | nl | head -n10
-}
-
+# Defer loading heavy functions to improve startup time
+# The function will be created on first call
 change-wallpaper() {
-  wallpaper_dir="$HOME/Pictures/Wallpapers"
-  export GUM_CHOOSE_HEADER_FOREGROUND="#d8dadd"
-  export GUM_CHOOSE_SELECTED_FOREGROUND="#758A9B"
-  export GUM_CHOOSE_CURSOR_FOREGROUND="#758A9B"
-  if [ ! -d $wallpaper_dir ]; then
-    echo "[ERROR] ~/Pictures/Wallpapers does not exist. Place images into this directory."
-    return 1
-  fi
-  deps=(imagemagick gum fd)
-  missing_deps=()
+  _is_installed() {
+    pacman -Qi "$1" &>/dev/null
+  }
+  local deps=(imagemagick gum fd)
+  local missing_deps=()
   for dep in "${deps[@]}"; do
-    if ! is_installed "$dep"; then
+    if ! _is_installed "$dep"; then
       missing_deps+=("$dep")
     fi
   done
@@ -167,52 +203,71 @@ change-wallpaper() {
     return 1
   fi
 
-  images=$(fd . --base-directory $wallpaper_dir -e jpg -e jpeg -e png -e gif -e bmp -e tiff -e tif -e webp -e ico -e jif -e psd -e dds -e heif -e heic)
-  if [ -z "$images" ]; then
-    echo "[ERROR] No image file found in ~/Pictures/Wallpapers."
-    return 1
-  fi
-  image="$wallpaper_dir/$(echo "$images" | gum choose --header 'Choose from ~/Pictures/Wallpapers: ')"
-  image_name=$(basename -- "$image")
-  extension="${image_name##*.}"
+  _change-wallpaper() {
+    local wallpaper_dir="$HOME/Pictures/Wallpapers"
+    export GUM_CHOOSE_HEADER_FOREGROUND="#d8dadd"
+    export GUM_CHOOSE_SELECTED_FOREGROUND="#758A9B"
+    export GUM_CHOOSE_CURSOR_FOREGROUND="#758A9B"
 
-  if [[ $XDG_CURRENT_DESKTOP == "niri" ]]; then
-    NIRICONF="$HOME/Niri"
-    mode=$(echo "stretch\nfill\nfit\ncenter\ntile" | gum choose --header "Select wallpaper mode: ")
-    if [[ "$image" == "$wallpaper_dir/" || -z $mode ]]; then
-      echo "[ERROR] No image or mode selected."
+    if [ ! -d "$wallpaper_dir" ]; then
+      echo "[ERROR] ~/Pictures/Wallpapers does not exist. Place images into this directory."
       return 1
     fi
-    new_cmd="\"swaybg\" \"-i\" \"$image\" \"-m\" \"$mode\" \"-c\" \"000000\""
-    if ! grep -q "spawn-at-startup \"swaybg\"" "$NIRICONF/niri/config.kdl"; then
-      sed -i "/\/\/ startup processes/a spawn-at-startup $new_cmd" "$NIRICONF/niri/config.kdl"
+
+    local images=$(fd . --base-directory "$wallpaper_dir" -e jpg -e jpeg -e png -e gif -e bmp -e tiff -e tif -e webp -e ico -e jif -e psd -e dds -e heif -e heic)
+    if [ -z "$images" ]; then
+      echo "[ERROR] No image file found in ~/Pictures/Wallpapers."
+      return 1
+    fi
+
+    local image="$wallpaper_dir/$(echo "$images" | gum choose --header 'Choose from ~/Pictures/Wallpapers: ')"
+    local image_name=$(basename -- "$image")
+    local extension="${image_name##*.}"
+
+    if [[ $XDG_CURRENT_DESKTOP == "niri" ]]; then
+      local NIRICONF="$HOME/Niri"
+      local mode=$(echo "stretch\nfill\nfit\ncenter\ntile" | gum choose --header "Select wallpaper mode: ")
+      if [[ "$image" == "$wallpaper_dir/" || -z $mode ]]; then
+        echo "[ERROR] No image or mode selected."
+        return 1
+      fi
+
+      local new_cmd="\"swaybg\" \"-i\" \"$image\" \"-m\" \"$mode\" \"-c\" \"000000\""
+      if ! grep -q "spawn-at-startup \"swaybg\"" "$NIRICONF/niri/config.kdl"; then
+        sed -i "/\/\/ startup processes/a spawn-at-startup $new_cmd" "$NIRICONF/niri/config.kdl"
+      else
+        sed -i "s|^spawn-at-startup \"swaybg.*|spawn-at-startup $new_cmd|" "$NIRICONF/niri/config.kdl"
+      fi
+
+      echo "Selected: $(basename "$image")"
+      echo "Mode: $mode"
+      pkill swaybg
+      (eval "$new_cmd" &>/dev/null &)
+      echo "OK!"
+
+    elif [[ $XDG_CURRENT_DESKTOP == "GNOME" ]]; then
+      local mode=$(echo "wallpaper\ncentered\nscaled\nstretched\nzoom\nspanned" | gum choose --header "Select wallpaper mode: ")
+      if [[ "$image" == "$wallpaper_dir/" || -z $mode ]]; then
+        echo "[ERROR] No image or mode selected."
+        return 1
+      fi
+
+      gsettings set org.gnome.desktop.background picture-uri "file://$image"
+      gsettings set org.gnome.desktop.background picture-uri-dark "file://$image"
+      gsettings set org.gnome.desktop.background picture-options "$mode"
+      gsettings set org.gnome.desktop.background primary-color "#000000"
+
+      echo "Selected: $(basename "$image")"
+      echo "Mode: $mode"
+      echo "OK!"
+
     else
-      sed -i "s|^spawn-at-startup \"swaybg.*|spawn-at-startup $new_cmd|" "$NIRICONF/niri/config.kdl"
-    fi
-    echo "Selected: $(basename $image)"
-    echo "Mode: $mode"
-    pkill swaybg
-    (eval $new_cmd &>/dev/null &)
-    echo "OK!"
-
-  elif [[ $XDG_CURRENT_DESKTOP == "GNOME" ]]; then
-    mode=$(echo "wallpaper\ncentered\nscaled\nstretched\nzoom\nspanned" | gum choose --header "Select wallpaper mode: ")
-    if [[ "$image" == "$wallpaper_dir/" || -z $mode ]]; then
-      echo "[ERROR] No image or mode selected."
+      echo "[ERROR] Unsupport session: $XDG_CURRENT_DESKTOP."
       return 1
     fi
-    gsettings set org.gnome.desktop.background picture-uri "file://$image"
-    gsettings set org.gnome.desktop.background picture-uri-dark "file://$image"
-    gsettings set org.gnome.desktop.background picture-options $mode
-    gsettings set org.gnome.desktop.background primary-color "#000000"
-    echo "Selected: $(basename $image)"
-    echo "Mode: $mode"
-    echo "OK!"
+  }
 
-  else
-    echo "[ERROR] Unsupport session: $XDG_CURRENT_DESKTOP."
-    return 1
-  fi
+  _change-wallpaper "$@"
 }
 
 # ---------------------------------------------------------------------------- #
@@ -228,105 +283,189 @@ alias deps-upward="aura deps --open"
 alias deps-downward="aura deps --open --reverse"
 
 pkglist() {
-  if [[ $# -eq 0 ]]; then
-    pacman -Qq | fzf --preview 'paru -Qi {}' --layout=reverse
-  elif [[ $# -gt 0 ]] && [[ $1 == '-e' ]]; then
-    pacman -Qqe | fzf --preview 'paru -Qi {}' --layout=reverse
-  else
-    echo "[ERROR] Unknown argument: $1"
+  _is_installed() {
+    pacman -Qi "$1" &>/dev/null
+  }
+  local deps=(fzf paru)
+  local missing_deps=()
+  for dep in "${deps[@]}"; do
+    if ! _is_installed "$dep"; then
+      missing_deps+=("$dep")
+    fi
+  done
+  if [[ -n $missing_deps ]]; then
+    echo "[ERROR] missing dependencies: ${missing_deps[*]}"
     return 1
   fi
+
+  _pkglist() {
+    if [[ $# -eq 0 ]]; then
+      pacman -Qq | fzf --preview 'paru -Qi {}' --layout=reverse
+    elif [[ $1 == '-e' ]]; then
+      pacman -Qqe | fzf --preview 'paru -Qi {}' --layout=reverse
+    elif [[ $1 == '-h' ]]; then
+      echo "pkglist: Browse installed packages via fzf"
+      echo ""
+      echo "Options:"
+      echo " -e Browse explicitly installed packages only"
+      echo " -h Show this help message and exit"
+      return 0
+    else
+      echo "[ERROR] Unknown argument: $1"
+      return 1
+    fi
+  }
+
+  _pkglist "$@"
 }
 
 pkgcount() {
-  if [[ $# -eq 0 ]]; then
-    pacman -Qq | wc -l
-  elif [[ $# -gt 0 ]] && [[ $1 == '-e' ]]; then
-    pacman -Qqe | wc -l
-  else
-    echo "[ERROR] Unknown argument: $1"
-    return 1
-  fi
+  _pkgcount() {
+    if [[ $# -eq 0 ]]; then
+      pacman -Qq | wc -l
+    elif [[ $1 == '-e' ]]; then
+      pacman -Qqe | wc -l
+    elif [[ $1 == '-h' ]]; then
+      echo "pkgcount: Count installed packages"
+      echo ""
+      echo "Options:"
+      echo " -e Count explicitly installed packages only"
+      echo " -h Show this help message and exit"
+      return 0
+    else
+      echo "[ERROR] Unknown argument: $1"
+      return 1
+    fi
+  }
+
+  _pkgcount "$@"
 }
 
 pkgsearch() {
-  if [[ $# -eq 0 ]]; then
-    pacman -Slq | fzf --preview 'pacman -Si {}' --layout=reverse --bind 'enter:execute(sudo pacman -S {})'
-  elif [[ $# -gt 0 ]] && [[ $1 == '-a' ]]; then
-    paru -Slqa | fzf --preview 'paru -Si {}' --layout=reverse --bind 'enter:execute(paru -S {})'
-  else
-    echo "[ERROR] Unknown argument: $1"
+  _is_installed() {
+    pacman -Qi "$1" &>/dev/null
+  }
+  local deps=(fzf paru)
+  local missing_deps=()
+  for dep in "${deps[@]}"; do
+    if ! _is_installed "$dep"; then
+      missing_deps+=("$dep")
+    fi
+  done
+  if [[ -n $missing_deps ]]; then
+    echo "[ERROR] missing dependencies: ${missing_deps[*]}"
     return 1
   fi
+
+  _pkgsearch() {
+    if [[ $# -eq 0 ]]; then
+      pacman -Slq | fzf --preview 'pacman -Si {}' --layout=reverse --bind 'enter:execute(sudo pacman -S {})'
+    elif [[ $1 == '-a' ]]; then
+      paru -Slqa | fzf --preview 'paru -Si {}' --layout=reverse --bind 'enter:execute(paru -S {})'
+    elif [[ $1 == '-h' ]]; then
+      echo "pkglist: Browse arch repository via fzf"
+      echo ""
+      echo "Options:"
+      echo " -a Browse arch repository and AUR"
+      echo " -h Show this help message and exit"
+      return 0
+    else
+      echo "[ERROR] Unknown argument: $1"
+      return 1
+    fi
+  }
+
+  _pkgsearch "$@"
 }
 
 cleanup() {
-  orphans=$(pacman -Qtdq)
-  if [[ -n $orphans ]]; then
-    printf "[INFO] Removing orphan packages: \n"
-    echo $orphans | xargs printf "   - %s\n"
-    printf "[INFO] Proceed? [Y/n]: "
-    read choice
-    choice=${choice:-Y}
-    choice=${choice:-Y}
-    if [[ $choice =~ ^[Yy]$ ]]; then
-      echo "$orphans" | xargs sudo pacman -Rns --noconfirm
-      if [[ $? -eq 0 ]]; then
-        printf "[INFO] Removal completed\n"
-      fi
+  _is_installed() {
+    pacman -Qi "$1" &>/dev/null
+  }
+  local deps=(pacman-contrib fd)
+  local missing_deps=()
+  for dep in "${deps[@]}"; do
+    if ! _is_installed "$dep"; then
+      missing_deps+=("$dep")
     fi
-  else
-    printf "[INFO] No orphan packages\n"
+  done
+  if [[ -n $missing_deps ]]; then
+    echo "[ERROR] missing dependencies: ${missing_deps[*]}"
+    return 1
   fi
-  pacman_cache=$(echo $(paccache -d) | grep -oP 'disk space saved: \K[0-9.]+ [A-Za-z]+')
-  if [[ -n $pacman_cache ]]; then
-    printf "[INFO] Pacman cache found. Save $pacman_cache? [Y/n]: "
-    read choice
-    choice=${choice:-Y}
-    if [[ $choice =~ ^[Yy]$ ]]; then
-      sudo paccache -rq
-      if [[ $? -eq 0 ]]; then
-        printf "[INFO] Pacman cache removed\n"
+
+  _cleanup() {
+    local orphans=$(pacman -Qtdq)
+    if [[ -n $orphans ]]; then
+      printf "[INFO] Removing orphan packages: \n"
+      echo $orphans | xargs printf "   - %s\n"
+      printf "[INFO] Proceed? [Y/n]: "
+      read choice
+      choice=${choice:-Y}
+      if [[ $choice =~ ^[Yy]$ ]]; then
+        echo "$orphans" | xargs sudo pacman -Rns --noconfirm
+        if [[ $? -eq 0 ]]; then
+          printf "[INFO] Removal completed\n"
+        fi
       fi
+    else
+      printf "[INFO] No orphan packages\n"
     fi
-  else
-    printf "[INFO] No pacman cache\n"
-  fi
-  paru_cache="$HOME/.cache/paru"
-  lookup_result=$(fd --absolute-path --no-ignore '\.tar.gz$|\.deb$' $paru_cache | grep -v 'pkg.tar.zst')
-  if [[ -n $lookup_result ]]; then
-    printf "[INFO] Removing AUR cache: \n"
-    echo $lookup_result | xargs printf "   - %s\n"
-    printf "[INFO] Proceed? [Y/n]: "
-    read choice
-    choice=${choice:-Y}
-    if [[ $choice =~ ^[Yy]$ ]]; then
-      rm $(fd --absolute-path --no-ignore '\.tar\.gz$|\.deb$' $paru_cache | grep -v 'pkg.tar.zst')
-      if [[ $? -eq 0 ]]; then
-        printf "[INFO] Removal completed\n"
+
+    local pacman_cache=$(echo $(paccache -d) | grep -oP 'disk space saved: \K[0-9.]+ [A-Za-z]+')
+    if [[ -n $pacman_cache ]]; then
+      printf "[INFO] Pacman cache found. Save $pacman_cache? [Y/n]: "
+      read choice
+      choice=${choice:-Y}
+      if [[ $choice =~ ^[Yy]$ ]]; then
+        sudo paccache -rq
+        if [[ $? -eq 0 ]]; then
+          printf "[INFO] Pacman cache removed\n"
+        fi
       fi
+    else
+      printf "[INFO] No pacman cache\n"
     fi
-  else
-    printf "[INFO] No AUR cache\n"
-  fi
-  printf "[INFO] OK\n"
+
+    local paru_cache="$HOME/.cache/paru"
+    local lookup_result=$(fd --absolute-path --no-ignore '\.tar.gz$|\.deb$' "$paru_cache" | grep -v 'pkg.tar.zst')
+    if [[ -n $lookup_result ]]; then
+      printf "[INFO] Removing paru cache: \n"
+      echo $lookup_result | xargs printf "   - %s\n"
+      printf "[INFO] Proceed? [Y/n]: "
+      read choice
+      choice=${choice:-Y}
+      if [[ $choice =~ ^[Yy]$ ]]; then
+        rm $(fd --absolute-path --no-ignore '\.tar\.gz$|\.deb$' "$paru_cache" | grep -v 'pkg.tar.zst')
+        if [[ $? -eq 0 ]]; then
+          printf "[INFO] Removal completed\n"
+        fi
+      fi
+    else
+      printf "[INFO] No paru cache\n"
+    fi
+
+    printf "[INFO] OK\n"
+  }
+
+  _cleanup
 }
 
 # ---------------------------------------------------------------------------- #
 #                              SHELL INTEGRATIONS                              #
 # ---------------------------------------------------------------------------- #
 
-if is_installed fzf; then
+if command -v fzf >/dev/null 2>&1; then
   eval "$(fzf --zsh)"
 else
   printf "[WARNING] fzf is not installed\n"
 fi
-if is_installed zoxide; then
+if command -v zoxide >/dev/null 2>&1; then
   eval "$(zoxide init zsh)"
 else
   printf "[WARNING] zoxide is not installed\n"
 fi
-if is_installed starship; then
+if command -v starship >/dev/null 2>&1; then
   eval "$(starship init zsh)"
 else
   printf "[WARNING] starship is not installed\n"
