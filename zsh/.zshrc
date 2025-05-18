@@ -146,9 +146,6 @@ alias weather="curl 'wttr.in/{Hsinchu,Taipei}?format=%l:+%c+%C+%t+%28%f%29\n'"
 ff() {
   local desktop="${XDG_CURRENT_DESKTOP:-}"
   case "$desktop" in
-    Hyprland)
-      fastfetch --config "$HOME/.config/fastfetch/hyprland.jsonc"
-      ;;
     GNOME)
       fastfetch --config "$HOME/.config/fastfetch/gnome.jsonc"
       ;;
@@ -164,11 +161,6 @@ ff() {
 log-out() {
   local desktop="${XDG_CURRENT_DESKTOP:-}"
   case "$desktop" in
-    Hyprland)
-      echo "Session found: Hyprland. Logging out..."
-      sleep 2
-      hyprctl dispatch exit
-      ;;
     GNOME)
       echo "Session found: GNOME. Logging out..."
       sleep 2
