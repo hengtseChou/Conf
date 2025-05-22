@@ -196,56 +196,41 @@ change-wallpaper() {
   fi
 
   _change-wallpaper() {
-    local wallpaper_dir="$HOME/Pictures/Wallpapers"
-    export GUM_CHOOSE_HEADER_FOREGROUND="#d8dadd"
-    export GUM_CHOOSE_SELECTED_FOREGROUND="#758A9B"
-    export GUM_CHOOSE_CURSOR_FOREGROUND="#758A9B"
-
-    if [ ! -d "$wallpaper_dir" ]; then
-      echo "[ERROR] ~/Pictures/Wallpapers does not exist. Place images into this directory."
-      return 1
-    fi
-
-    local images=$(fd . --base-directory "$wallpaper_dir" -e jpg -e jpeg -e png -e gif -e bmp -e tiff -e tif -e webp -e ico -e jif -e psd -e dds -e heif -e heic)
-    if [ -z "$images" ]; then
-      echo "[ERROR] No image file found in ~/Pictures/Wallpapers."
-      return 1
-    fi
-
-    local image="$wallpaper_dir/$(echo "$images" | gum choose --header 'Choose from ~/Pictures/Wallpapers: ')"
-    local image_name=$(basename -- "$image")
-    local extension="${image_name##*.}"
-
     if [[ $XDG_CURRENT_DESKTOP == "niri" ]]; then
-      local NIRICONF="$HOME/Niri"
-      local mode=$(echo "stretch\nfill\nfit\ncenter\ntile" | gum choose --header "Select wallpaper mode: ")
-      if [[ "$image" == "$wallpaper_dir/" || -z $mode ]]; then
-        echo "[ERROR] No image or mode selected."
-        return 1
-      fi
-
-      local new_cmd="\"swaybg\" \"-i\" \"$image\" \"-m\" \"$mode\" \"-c\" \"000000\""
-      if ! grep -q "spawn-at-startup \"swaybg\"" "$NIRICONF/niri/config.kdl"; then
-        sed -i "/\/\/ startup processes/a spawn-at-startup $new_cmd" "$NIRICONF/niri/config.kdl"
-      else
-        sed -i "s|^spawn-at-startup \"swaybg.*|spawn-at-startup $new_cmd|" "$NIRICONF/niri/config.kdl"
-      fi
-
-      echo "Selected: $(basename "$image")"
-      echo "Mode: $mode"
-      pkill swaybg
-      (eval "$new_cmd" &>/dev/null &)
-      echo "OK!"
+      bash "$HOME/Niri/scripts/change-wallpaper.sh"
 
     elif [[ $XDG_CURRENT_DESKTOP == "GNOME" ]]; then
-      local mode=$(echo "wallpaper\ncentered\nscaled\nstretched\nzoom\nspanned" | gum choose --header "Select wallpaper mode: ")
-      if [[ "$image" == "$wallpaper_dir/" || -z $mode ]]; then
-        echo "[ERROR] No image or mode selected."
+      local wallpaper_dir="$HOME/Pictures/Wallpapers"
+      export GUM_CHOOSE_HEADER_FOREGROUND="#d8dadd"
+      export GUM_CHOOSE_SELECTED_FOREGROUND="#758A9B"
+      export GUM_CHOOSE_CURSOR_FOREGROUND="#758A9B"
+
+      if [ ! -d "$wallpaper_dir" ]; then
+        mkdir -p "$wallpaper_dir"
+      fi
+
+      local images=$(fd . --base-directory "$wallpaper_dir" -x file {} | grep -oP '^.+: \w+ image' | cut -d ':' -f 1 | sort)
+      if [ -z "$images" ]; then
+        echo "[ERROR] no image file found. place your wallpapers in $wallpaper_dir."
         return 1
       fi
 
-      gsettings set org.gnome.desktop.background picture-uri "file://$image"
-      gsettings set org.gnome.desktop.background picture-uri-dark "file://$image"
+      local image=$(echo "$images" | gum choose --header 'choose your wallpaper: ')
+      if [[ -z "$image" ]]; then
+        echo "[INFO] no image was selected"
+        return 1
+      fi
+      local image_name=$(basename -- "$image")
+      local extension="${image_name##*.}"
+
+      local mode=$(echo "wallpaper\ncentered\nscaled\nstretched\nzoom\nspanned" | gum choose --header "Select wallpaper mode: ")
+      if [[ -z "$mode" ]]; then
+        echo "[INFO] no mode was selected"
+        return 1
+      fi
+
+      gsettings set org.gnome.desktop.background picture-uri "file://$wallpaper_dir/$image"
+      gsettings set org.gnome.desktop.background picture-uri-dark "file://$wallpaper_dir/$image"
       gsettings set org.gnome.desktop.background picture-options "$mode"
       gsettings set org.gnome.desktop.background primary-color "#000000"
 
@@ -259,7 +244,7 @@ change-wallpaper() {
     fi
   }
 
-  _change-wallpaper "$@"
+  _change-wallpaper
 }
 
 # ---------------------------------------------------------------------------- #
