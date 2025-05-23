@@ -191,9 +191,9 @@ for pkg in ${selected_pkgs[@]}; do
     ;;
   greetd-tuigreet)
     sudo systemctl enable greetd.service
-    sudo cp $config_folder/tuigreet/config.toml /etc/greetd/config.toml
+    sudo cp $config_folder/greetd-tuigreet/config.toml /etc/greetd/config.toml
     sudo mkdir -p /etc/systemd/system/greetd.service.d
-    sudo cp $config_folder/tuigreet/override.conf /etc/systemd/system/greetd.service.d/override.conf
+    sudo cp $config_folder/greetd-tuigreet/override.conf /etc/systemd/system/greetd.service.d/override.conf
     ;;
   htop)
     symlink $config_folder/htop --to-config
