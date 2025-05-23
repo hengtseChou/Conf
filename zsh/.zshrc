@@ -167,7 +167,7 @@ log-out() {
       gnome-session-quit --no-prompt
       ;;
     niri)
-      echo "Session found: Niri. Logging out..."
+      echo "Session found: niri. Logging out..."
       sleep 2
       pkill niri
       ;;
