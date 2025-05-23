@@ -2,9 +2,9 @@
 	unstage = reset HEAD --
 	uncommit = reset HEAD~
 	untrack = update-index --assume-unchanged
-	track = update-index --no-assume-unchanged
 	retrack = update-index --no-assume-unchanged
-	drop = reset --hard
+	discard = reset --hard
+	revert = reset --hard HEAD~1
 	set-remote = remote set-url origin
 [credential "https://github.com"]
 	helper =
